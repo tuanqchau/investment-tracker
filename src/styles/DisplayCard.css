@@ -1,0 +1,11 @@
+.card-container {
+    background-color: #21242C;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 18rem;
+ 
+}
