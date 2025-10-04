@@ -276,7 +276,7 @@ const Dashboard = () => {
       </div>
 
       {/*Portfolio Allocation Pie Chart */}
-      <div style={{ width: "100%", marginTop: "20px" }}>
+      <div style={{ width: "100%", marginTop: "10px" }}>
         <AllocationPie data={processHoldingsData(portfolio)} />
       </div>
     </div>

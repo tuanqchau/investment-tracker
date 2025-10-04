@@ -18,8 +18,8 @@ interface HoldingsTableProps {
 }
 
 const columns: GridColDef[] = [
-  { field: 'symbol', headerName: 'Symbol', flex: 1 },
-  { field: 'quantity', headerName: 'Quantity', flex: 1 },
+  { field: 'symbol', headerName: 'Symbol', flex: 1, },
+  { field: 'quantity', headerName: 'Quantity', flex: 1, },
   {
     field: 'avgCost',
     headerName: 'Avg Cost',
@@ -28,6 +28,7 @@ const columns: GridColDef[] = [
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
     },
+    
   },
   {
     field: 'currentPrice',
@@ -37,6 +38,7 @@ const columns: GridColDef[] = [
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
     },
+   
   },
   {
     field: 'marketValue',
@@ -46,11 +48,13 @@ const columns: GridColDef[] = [
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
     },
+
   },
   {
     field: 'gainLoss',
     headerName: 'Gain/Loss',
     flex: 1,
+
     renderCell: (params: any) => {
       const val = params?.value;
       if (val == null || isNaN(val)) {
@@ -79,6 +83,12 @@ export default function HoldingsTable({ holdings }: HoldingsTableProps) {
         sx={{
           border: 0,
           '& .MuiDataGrid-cell': { fontSize: 14 },
+          backgroundColor: '#21242C',
+          header: { backgroundColor: '#21242C' },
+          color: '#fff',
+          '& .MuiDataGrid-columnHeader': {
+            backgroundColor: '#3a3a3a', // slightly lighter for header
+          },
         }}
       />
     </div>
