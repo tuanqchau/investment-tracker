@@ -4,6 +4,7 @@ import type { CardProps } from "../types/card-component";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
 import { supabase } from "../supabaseClient";
+import HoldingsTable from "../components/HoldingsTable";
 // MUI imports
 import {
   Button,
@@ -12,9 +13,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  List,
-  ListItem,
-  ListItemButton,
   Typography,
   Autocomplete,
 } from "@mui/material";
@@ -33,9 +31,48 @@ const Dashboard = () => {
   const [price, setPrice] = useState("");
   const [shares, setShares] = useState("");
 
-  const [portfolio, setPortfolio] = useState<any[]>([]);
+  interface PortfolioHolding {
+    id: number;
+    symbol: string;
+    shares: number;
+    price: number;
+    date_purchase: string;
+  }
+
+  const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
   const [date, setDate] = useState<Dayjs | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const processHoldingsData = (holdings: PortfolioHolding[]) => {
+    // Group holdings by symbol
+    const groupedHoldings = holdings.reduce((acc, holding) => {
+      const { symbol, shares, price } = holding;
+      if (!acc[symbol]) {
+        acc[symbol] = { totalShares: 0, totalCost: 0 };
+      }
+      acc[symbol].totalShares += shares;
+      acc[symbol].totalCost += shares * price;
+      return acc;
+    }, {} as Record<string, { totalShares: number; totalCost: number; }>);
+
+    return Object.entries(groupedHoldings).map(([symbol, data], index) => {
+      const avgCost = data.totalCost / data.totalShares;
+      // TODO: Replace with actual current price from an API
+      const currentPrice = avgCost * 1.1; // Temporary: using 10% above avg cost as current price
+      const marketValue = currentPrice * data.totalShares;
+      const gainLoss = ((currentPrice - avgCost) / avgCost) * 100;
+
+      return {
+        id: index + 1,
+        symbol,
+        quantity: data.totalShares,
+        avgCost,
+        currentPrice,
+        marketValue,
+        gainLoss,
+      };
+    });
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -52,7 +89,7 @@ const Dashboard = () => {
         if (error) throw error;
 
         if (data && isMounted) {
-          setPortfolio(data);
+          setPortfolio(data as PortfolioHolding[]);
         }
       } catch (error) {
         console.error('Error fetching holdings:', error);
@@ -82,7 +119,7 @@ const Dashboard = () => {
       }
 
       if (data) {
-        setPortfolio(data);
+        setPortfolio(data as PortfolioHolding[]);
       }
     } catch (error) {
       console.error('Error fetching holdings:', error);
@@ -96,31 +133,32 @@ const Dashboard = () => {
     name: "Total Value",
     amount: 12500,
     lastChange: 5.2,
-    logo: "",
   };
 
   const totalGainLossCard: CardProps = {
     name: "Total Gain/Loss",
     amount: 3200,
     lastChange: -2.3,
-    logo: "",
   };
 
   const todaysChangeCard: CardProps = {
     name: "Today's Change",
     amount: 150,
     lastChange: 1.1,
-    logo: "",
   };
 
   const handleSave = async () => {
     if (!date) return; // prevent saving without a date
 
+    // Extract stock symbol from the search string (e.g., "Apple (AAPL)" -> "AAPL")
+    const symbolMatch = search.match(/\(([^)]+)\)/);
+    const symbol = symbolMatch ? symbolMatch[1] : search;
+
     const newHolding = {
-      symbol: search,
+      symbol: symbol,
       price: parseFloat(price),
       shares: parseInt(shares),
-      date_purchase: date.format("YYYY-MM-DD"), // ✅ convert to string
+      date_purchase: date.format("YYYY-MM-DD"),
     };
 
     console.log('Attempting to save holding:', newHolding);
@@ -211,33 +249,22 @@ const Dashboard = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Portfolio List */}
+      {/* Portfolio Holdings Table */}
       <div style={{ width: "100%", marginTop: "20px" }}>
-        <Typography variant="h6">Portfolio Holdings</Typography>
-        {isLoading ? (
-          <Typography>Loading...</Typography>
-        ) : portfolio.length === 0 ? (
-          <Typography>No holdings found. Add your first transaction!</Typography>
-        ) : (
-          <List>
-            {portfolio.map((holding, index) => (
-              <ListItem key={index} divider>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', padding: '10px' }}>
-                  <Typography variant="body1" style={{ fontWeight: 'bold' }}>{holding.stock}</Typography>
-                  <div>
-                    <Typography variant="body2">{holding.shares} shares @ ${holding.price}</Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      Total: ${(holding.shares * holding.price).toFixed(2)}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      Purchased: {holding.date}
-                    </Typography>
-                  </div>
-                </div>
-              </ListItem>
-            ))}
-          </List>
-        )}
+        
+        {(() => {
+          console.log('Current portfolio state:', portfolio);
+          console.log('isLoading:', isLoading);
+          if (isLoading) {
+            return <Typography>Loading...</Typography>;
+          }
+          if (portfolio.length === 0) {
+            return <Typography>No holdings found. Add your first transaction!</Typography>;
+          }
+          const processedHoldings = processHoldingsData(portfolio);
+          console.log('Processed holdings:', processedHoldings);
+          return <HoldingsTable holdings={processedHoldings} />;
+        })()}
       </div>
     </div>
   );
