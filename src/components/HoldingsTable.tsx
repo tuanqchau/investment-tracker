@@ -18,12 +18,14 @@ interface HoldingsTableProps {
 }
 
 const columns: GridColDef[] = [
-  { field: 'symbol', headerName: 'Symbol', flex: 1, },
-  { field: 'quantity', headerName: 'Quantity', flex: 1, },
+  { field: 'symbol', headerName: 'Symbol', flex: 1, resizable: false, disableColumnMenu: true,},
+  { field: 'quantity', headerName: 'Quantity', flex: 1,  resizable: false, disableColumnMenu: true,},
   {
     field: 'avgCost',
     headerName: 'Avg Cost',
     flex: 1,
+    resizable: false,
+    disableColumnMenu: true,
     valueFormatter: ({ value }: { value: number | undefined }) => {
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
@@ -34,6 +36,8 @@ const columns: GridColDef[] = [
     field: 'currentPrice',
     headerName: 'Current Price',
     flex: 1,
+    resizable: false,
+    disableColumnMenu: true,
     valueFormatter: ({ value }: { value: number | undefined }) => {
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
@@ -44,6 +48,9 @@ const columns: GridColDef[] = [
     field: 'marketValue',
     headerName: 'Market Value',
     flex: 1,
+    resizable: false,
+    disableColumnMenu: true,
+
     valueFormatter: ({ value }: { value: number | undefined }) => {
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
@@ -54,7 +61,8 @@ const columns: GridColDef[] = [
     field: 'gainLoss',
     headerName: 'Gain/Loss',
     flex: 1,
-
+    resizable: false,
+    disableColumnMenu: true,
     renderCell: (params: any) => {
       const val = params?.value;
       if (val == null || isNaN(val)) {
