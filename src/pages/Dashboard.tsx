@@ -16,6 +16,7 @@ import {
   Typography,
   Autocomplete,
 } from "@mui/material";
+import AllocationPie from "../components/AllocationPie";
 
 const stockList = [
   "Apple (AAPL)",
@@ -272,6 +273,11 @@ const Dashboard = () => {
           console.log('Processed holdings:', processedHoldings);
           return <HoldingsTable holdings={processedHoldings} />;
         })()}
+      </div>
+
+      {/*Portfolio Allocation Pie Chart */}
+      <div style={{ width: "100%", marginTop: "20px" }}>
+        <AllocationPie data={processHoldingsData(portfolio)} />
       </div>
     </div>
   );
