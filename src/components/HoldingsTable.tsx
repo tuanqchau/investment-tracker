@@ -18,39 +18,51 @@ interface HoldingsTableProps {
 }
 
 const columns: GridColDef[] = [
-  { field: 'symbol', headerName: 'Symbol', flex: 1 },
-  { field: 'quantity', headerName: 'Quantity', flex: 1 },
+  { field: 'symbol', headerName: 'Symbol', flex: 1, resizable: false, disableColumnMenu: true,},
+  { field: 'quantity', headerName: 'Quantity', flex: 1,  resizable: false, disableColumnMenu: true,},
   {
     field: 'avgCost',
     headerName: 'Avg Cost',
     flex: 1,
+    resizable: false,
+    disableColumnMenu: true,
     valueFormatter: ({ value }: { value: number | undefined }) => {
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
     },
+    
   },
   {
     field: 'currentPrice',
     headerName: 'Current Price',
     flex: 1,
+    resizable: false,
+    disableColumnMenu: true,
     valueFormatter: ({ value }: { value: number | undefined }) => {
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
     },
+   
   },
   {
     field: 'marketValue',
     headerName: 'Market Value',
     flex: 1,
+    resizable: false,
+    disableColumnMenu: true,
+
     valueFormatter: ({ value }: { value: number | undefined }) => {
       if (value == null || isNaN(value)) return '';
       return `$${value.toFixed(2)}`;
     },
+
   },
   {
     field: 'gainLoss',
     headerName: 'Gain/Loss',
     flex: 1,
+    resizable: false,
+    disableColumnMenu: true,
     renderCell: (params: any) => {
       const val = params?.value;
       if (val == null || isNaN(val)) {
@@ -79,7 +91,19 @@ export default function HoldingsTable({ holdings }: HoldingsTableProps) {
         sx={{
           border: 0,
           '& .MuiDataGrid-cell': { fontSize: 14 },
+          backgroundColor: '#21242C',
+          header: { backgroundColor: '#21242C' },
+          color: '#fff',
+          '& .MuiDataGrid-columnHeader': {
+            backgroundColor: '#3a3a3a', // slightly lighter for header
+          },
         }}
+        // slotProps={{
+        //   loadingOverlay: {
+        //     variant: 'linear-progress',
+        //     noRowsVariant: 'skeleton',
+        //   },
+        // }}
       />
     </div>
   );

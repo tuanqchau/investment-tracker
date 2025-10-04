@@ -17,7 +17,8 @@ import {
   Autocomplete,
 } from "@mui/material";
 import AllocationPie from "../components/AllocationPie";
-
+import RecentTransactions from "../components/RecentTransactions";
+import type { Transaction } from "../components/RecentTransactions";
 const stockList = [
   "Apple (AAPL)",
   "Amazon (AMZN)",
@@ -276,7 +277,7 @@ const Dashboard = () => {
       </div>
 
       {/*Portfolio Allocation Pie Chart */}
-      <div style={{ width: "100%", marginTop: "20px" }}>
+      <div style={{ width: "100%", marginTop: "10px" }}>
         <AllocationPie data={processHoldingsData(portfolio)} />
       </div>
     </div>
