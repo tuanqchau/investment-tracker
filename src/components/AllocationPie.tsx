@@ -18,7 +18,7 @@ export default function PortfolioPieChart({data}: AllocationPieProps) {
   const totalValue = data.reduce((sum, d) => sum + d.marketValue, 0);
 
   return (
-    <div style={{ width: '100%', height: 300 }}>
+    <div style={{ width: '50%', height: 300 }}>
       <PieChart
         series={[
           {
@@ -31,6 +31,7 @@ export default function PortfolioPieChart({data}: AllocationPieProps) {
             faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
             arcLabel: (item) => `${((item.value / totalValue) * 100).toFixed(1)}%`,
             arcLabelMinAngle:35,
+
           },
         ]}
         sx={{
@@ -41,6 +42,8 @@ export default function PortfolioPieChart({data}: AllocationPieProps) {
             "& .MuiChartsLegend-series text": {
                 fill: "#fff", // ✅ legend labels (GOOGL, AMZN, etc.)
             },
+            '& .MuiDataGrid-footerContainer': { display: 'none' },
+            
         }}
 
       />

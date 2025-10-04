@@ -98,6 +98,12 @@ export default function HoldingsTable({ holdings }: HoldingsTableProps) {
             backgroundColor: '#3a3a3a', // slightly lighter for header
           },
         }}
+        // slotProps={{
+        //   loadingOverlay: {
+        //     variant: 'linear-progress',
+        //     noRowsVariant: 'skeleton',
+        //   },
+        // }}
       />
     </div>
   );
