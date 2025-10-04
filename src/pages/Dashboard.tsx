@@ -16,6 +16,7 @@ import {
   Typography,
   Autocomplete,
 } from "@mui/material";
+import AllocationPie from "../components/AllocationPie";
 
 const stockList = [
   "Apple (AAPL)",
@@ -198,55 +199,62 @@ const Dashboard = () => {
 
       {/* MUI Modal */}
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="sm" fullWidth>
+
         <DialogTitle>Add Transaction</DialogTitle>
+
         <DialogContent>
-  {/* Autocomplete for stock selection */}
-  <Autocomplete
-    options={stockList}
-    value={search}
-    onChange={(_, newValue) => setSearch(newValue || "")}
-    renderInput={(params) => (
-      <TextField {...params} label="Search stock" margin="dense" fullWidth />
-    )}
-    freeSolo // allows typing custom values if not in list
-  />
 
-  {/* Price */}
-  <TextField
-    fullWidth
-    type="number"
-    label="Price Purchased"
-    value={price}
-    onChange={(e) => setPrice(e.target.value)}
-    margin="dense"
-  />
+          {/* Autocomplete for stock selection */}
+          <Autocomplete
+            options={stockList}
+            value={search}
+            onChange={(_, newValue) => setSearch(newValue || "")}
+            renderInput={(params) => (
+              <TextField {...params} label="Search stock" margin="dense" fullWidth />
+            )}
+            freeSolo // allows typing custom values if not in list
+          />
 
-  {/* Shares */}
-  <TextField
-    fullWidth
-    type="number"
-    label="Number of Shares"
-    value={shares}
-    onChange={(e) => setShares(e.target.value)}
-    margin="dense"
-  />
+          {/* Price */}
+          <TextField
+            fullWidth
+            type="number"
+            label="Price Purchased"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            margin="dense"
+          />
 
-  <DatePicker
-    label="Purchase Date"
-    value={date} // Dayjs | null
-    onChange={(newDate: Dayjs | null) => setDate(newDate)}
-    slotProps={{ textField: { fullWidth: true, margin: "dense" } }}
-  />
-</DialogContent>
+          {/* Shares */}
+          <TextField
+            fullWidth
+            type="number"
+            label="Number of Shares"
+            value={shares}
+            onChange={(e) => setShares(e.target.value)}
+            margin="dense"
+          />
+
+          <DatePicker
+            label="Purchase Date"
+            value={date} // Dayjs | null
+            onChange={(newDate: Dayjs | null) => setDate(newDate)}
+            slotProps={{ textField: { fullWidth: true, margin: "dense" } }}
+          />
+
+        </DialogContent>
 
         <DialogActions>
+
           <Button onClick={() => setIsModalOpen(false)} color="secondary">
             Cancel
           </Button>
           <Button onClick={handleSave} variant="contained" color="primary">
             Save
           </Button>
+
         </DialogActions>
+
       </Dialog>
 
       {/* Portfolio Holdings Table */}
@@ -265,6 +273,11 @@ const Dashboard = () => {
           console.log('Processed holdings:', processedHoldings);
           return <HoldingsTable holdings={processedHoldings} />;
         })()}
+      </div>
+
+      {/*Portfolio Allocation Pie Chart */}
+      <div style={{ width: "100%", marginTop: "20px" }}>
+        <AllocationPie data={processHoldingsData(portfolio)} />
       </div>
     </div>
   );
