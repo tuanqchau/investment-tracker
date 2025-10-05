@@ -5,6 +5,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs, { Dayjs } from "dayjs";
 import { supabase } from "../supabaseClient";
 import HoldingsTable from "../components/HoldingsTable";
+import AddButton from "../components/AddTransactionButton";
+
 // MUI imports
 import {
   Button,
@@ -17,6 +19,7 @@ import {
   Autocomplete,
 } from "@mui/material";
 import AllocationPie from "../components/AllocationPie";
+
 import RecentTransactions from "../components/RecentTransactions";
 import type { Transaction } from "../components/RecentTransactions";
 const stockList = [
@@ -141,6 +144,7 @@ const Dashboard = () => {
     name: "Total Gain/Loss",
     amount: 3200,
     lastChange: -2.3,
+
   };
 
   const todaysChangeCard: CardProps = {
@@ -189,14 +193,29 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ display: "flex", gap: "20px", padding: "20px", flexWrap: "wrap" }}>
-      <Button variant="contained" color="primary" onClick={() => setIsModalOpen(true)}>
-        Add Transaction
-      </Button>
+    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "20px" }}>
 
-      <Card {...totalValueCard} />
-      <Card {...totalGainLossCard} />
-      <Card {...todaysChangeCard} />
+      {/* Row 1: Add Transaction button */}
+      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+        <AddButton onClick={() => setIsModalOpen(true)}/>
+
+      </div>
+
+      {/* Row 2: Portfolio summary cards */}
+      <div
+        className="portfolio-summary-container"
+        style={{
+          display: "flex",
+          gap: "20px",
+          flexWrap: "wrap",
+          width: "100%",
+          justifyContent: "space-between",
+        }}
+      >
+        <Card {...totalValueCard}/>
+        <Card {...totalGainLossCard} />
+        <Card {...todaysChangeCard} />
+      </div>
 
       {/* MUI Modal */}
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="sm" fullWidth>
@@ -258,29 +277,25 @@ const Dashboard = () => {
 
       </Dialog>
 
-      {/* Portfolio Holdings Table */}
-      <div style={{ width: "100%", marginTop: "20px" }}>
-        
+
+      {/* Row 3: Portfolio Holdings Table */}
+      <div style={{ width: "100%" }}>
         {(() => {
-          console.log('Current portfolio state:', portfolio);
-          console.log('isLoading:', isLoading);
-          if (isLoading) {
-            return <Typography>Loading...</Typography>;
-          }
-          if (portfolio.length === 0) {
+          if (isLoading) return <Typography>Loading...</Typography>;
+          if (portfolio.length === 0)
             return <Typography>No holdings found. Add your first transaction!</Typography>;
-          }
           const processedHoldings = processHoldingsData(portfolio);
-          console.log('Processed holdings:', processedHoldings);
           return <HoldingsTable holdings={processedHoldings} />;
         })()}
       </div>
 
-      {/*Portfolio Allocation Pie Chart */}
-      <div style={{ width: "100%", marginTop: "10px" }}>
+      {/* Row 4: Portfolio Allocation Pie Chart */}
+      <div style={{ width: "100%" }}>
         <AllocationPie data={processHoldingsData(portfolio)} />
       </div>
-    </div>
+
+  </div>
+
   );
 };
 
