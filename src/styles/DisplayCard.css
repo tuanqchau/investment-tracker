@@ -44,6 +44,7 @@
 .logo-container {
   display: flex;
   align-items: flex-start;
+  font-size: 1.5rem;
 }
 
 .card-logo {

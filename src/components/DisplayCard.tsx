@@ -25,7 +25,7 @@ const Card: React.FC<CardProps> = ({
       <p
         className="card-change"
         style={{
-          color: isPositive ? "var(--green-primary)" : "var(--red-primary)",
+          color: isPositive ? "var(--green-yellow)" : "var(--red-primary)",
           fontWeight: "bold",
         }}
       >
