@@ -130,7 +130,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
         .from('portfolio')
         .select('*')
         .eq("user_id", user.id);
-        
+
       if (error) {
         throw error;
       }
@@ -222,8 +222,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
       </div>
       {/* Row 1: Add Transaction button */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <AddButton onClick={() => setIsModalOpen(true)}/>
-
+        <AddButton onClick={() => setIsModalOpen(true)} name="Add Transaction"/>
       </div>
 
       {/* Row 2: Portfolio summary cards */}

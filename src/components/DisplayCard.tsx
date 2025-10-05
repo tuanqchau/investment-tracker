@@ -20,7 +20,7 @@ const Card: React.FC<CardProps> = ({
       <p className="card-value">${amount.toLocaleString()}</p>
       <p
         className="card-change"
-        style={{ color: isPositive ? "green" : "red" }}
+        style={{ color: isPositive ? ('var(--green-yellow)') : ('var(--primary-red)') }}
       >
         {isPositive ? <FiArrowUpRight/> : <FiArrowDownRight/>} {lastChange}%
       </p>

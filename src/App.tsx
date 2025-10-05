@@ -4,7 +4,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'; // ✅ add this
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { Box } from '@mui/material';
 
 interface AppUser {
   id: string;
@@ -13,22 +14,21 @@ interface AppUser {
 
 const App: React.FC = () => {
   const [user, setUser] = useState<AppUser | null>(null);
+  const [showLogin, setShowLogin] = useState(false); // 👈 toggle between login/signup
 
   useEffect(() => {
-    // Get current session
     supabase.auth.getSession().then(({ data }) => {
       const supaUser = data.session?.user;
       if (supaUser) {
         setUser({
           id: supaUser.id,
-          email: supaUser.email ?? null, // convert undefined -> null
+          email: supaUser.email ?? null,
         });
       } else {
         setUser(null);
       }
     });
 
-    // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const supaUser = session?.user;
       if (supaUser) {
@@ -45,15 +45,24 @@ const App: React.FC = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      {/* ✅ Wrap the app here so all children can use date pickers */}
       {!user ? (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 50 }}>
-          <div>
-            <Login />
-            <hr style={{ margin: '20px 0' }} />
-            <Signup />
-          </div>
-        </div>
+        <Box
+          sx={{
+            minHeight: '100vh',
+            minWidth: '100vw',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          
+            p: 3,
+          }}
+        >
+          {showLogin ? (
+            <Login onSwitchToSignup={() => setShowLogin(false)} />
+          ) : (
+            <Signup onSwitchToLogin={() => setShowLogin(true)} />
+          )}
+        </Box>
       ) : (
         <Dashboard user={user} />
       )}

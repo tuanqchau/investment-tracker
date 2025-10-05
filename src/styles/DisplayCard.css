@@ -1,5 +1,5 @@
 .card-container {
-  background-color: #21242c;
+  background-color: var(--secondary-background);
   border-radius: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   padding: 1rem;
