@@ -4,7 +4,7 @@ interface AddTransactionButtonProps {
   onClick?: () => void; // optional click handler
 
 }
-const AddTransactionButton: React.FC<AddTransactionButtonProps> = ({ onClick }) => {
+const AddTransactionButton = ({ onClick }: AddTransactionButtonProps) => {
   return (
     <StyledWrapper>
       <button className="animated-button" onClick={onClick}>
@@ -32,7 +32,7 @@ const StyledWrapper = styled.div`
     border-color: transparent;
     font-size: 16px;
     background-color: inherit;
-    border-radius: 100px;
+    border-radius: 10px;
     font-weight: 600;
     color: greenyellow;
     box-shadow: 0 0 0 2px greenyellow;
@@ -47,6 +47,7 @@ const StyledWrapper = styled.div`
     fill: greenyellow;
     z-index: 9;
     transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+
   }
 
   .animated-button .arr-1 {
@@ -80,7 +81,7 @@ const StyledWrapper = styled.div`
   .animated-button:hover {
     box-shadow: 0 0 0 12px transparent;
     color: #212121;
-    border-radius: 12px;
+    border-radius: 8px;
   }
 
   .animated-button:hover .arr-1 {
