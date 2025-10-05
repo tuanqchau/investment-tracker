@@ -200,10 +200,18 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "20px" }}>
+    <div   style={{
+      padding: "20px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "20px",
+      alignItems: "flex-start",   // ensures items start from top
+      justifyContent: "flex-start", // ensures content aligns at top
+      minHeight: "100vh",         // optional: fill viewport height
+    }}>
 
       {/* Row 1: Add Transaction button */}
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <div style={{ width: "100%", display: "flex", justifyContent: "flex-end" }}>
         <AddButton onClick={() => setIsModalOpen(true)}/>
 
       </div>
@@ -296,10 +304,23 @@ const Dashboard = () => {
         })()}
       </div>
 
-      {/* Row 4: Portfolio Allocation Pie Chart */}
-      <div style={{ width: "100%" }}>
-        <AllocationPie data={processHoldingsData(portfolio)} />
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",      // allows items to wrap on smaller screens
+          gap: "20px",
+          width: "100%",
+          height: "50px"
+        }}
+      >
+        {/* Row 4: Portfolio Allocation Pie Chart */}
+        <div style={{ flex: "1 1 300px", minWidth: 300, maxWidth: "50%" }}>
+
+          <AllocationPie data={processHoldingsData(portfolio)} />
+        </div>
+        
       </div>
+      
 
   </div>
 

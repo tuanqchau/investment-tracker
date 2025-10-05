@@ -18,7 +18,7 @@ export default function PortfolioPieChart({data}: AllocationPieProps) {
   const totalValue = data.reduce((sum, d) => sum + d.marketValue, 0);
 
   return (
-    <div style={{ width: '50%', height: 300 }}>
+    <div style={{ height: 500 }}>
       <PieChart
         series={[
           {
