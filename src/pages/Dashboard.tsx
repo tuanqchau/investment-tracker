@@ -34,8 +34,13 @@ const stockList = [
   "Tesla (TSLA)",
   "Nvidia (NVDA)",
 ];
-
-const Dashboard = () => {
+interface Props {
+  user: {
+    id: string;
+    email: string | null;
+  };
+}
+const Dashboard: React.FC<Props> = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [price, setPrice] = useState("");
@@ -93,7 +98,8 @@ const Dashboard = () => {
         console.log('Fetching data from Supabase...');
         const { data, error } = await supabase
           .from('portfolio')
-          .select('*');
+          .select('*')
+          .eq('user_id', user?.id);
 
         console.log('Supabase response:', { data, error });
         if (error) throw error;
@@ -115,15 +121,16 @@ const Dashboard = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [user.id]);
 
   const fetchHoldings = async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('portfolio')
-        .select('*');
-
+        .select('*')
+        .eq("user_id", user.id);
+        
       if (error) {
         throw error;
       }
@@ -162,12 +169,16 @@ const Dashboard = () => {
 
   const handleSave = async () => {
     if (!date) return; // prevent saving without a date
-
+    if (!user?.id) {
+        alert("User not logged in");
+        return;
+    }
     // Extract stock symbol from the search string (e.g., "Apple (AAPL)" -> "AAPL")
     const symbolMatch = search.match(/\(([^)]+)\)/);
     const symbol = symbolMatch ? symbolMatch[1] : search;
 
     const newHolding = {
+      user_id: user.id,
       symbol: symbol,
       price: parseFloat(price),
       shares: parseInt(shares),
@@ -199,9 +210,16 @@ const Dashboard = () => {
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
     <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "20px" }}>
-
+      <div style={{ textAlign: 'center', marginTop: 50 }}>
+        <h1>Welcome, {user.email}</h1>
+        <button onClick={handleLogout}>Log Out</button>
+      </div>
       {/* Row 1: Add Transaction button */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <AddButton onClick={() => setIsModalOpen(true)}/>
