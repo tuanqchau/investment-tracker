@@ -1,117 +1,53 @@
 .card-container {
-    background-color: #21242C;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    width: 18rem;
- 
+  background-color: #21242c;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  width: 18rem;
+  flex: 1;
+  
 }
 
-.dashboard-container {
+.card-header {
   display: flex;
-  gap: 20px;
-  padding: 20px;
-  flex-wrap: wrap;
+  justify-content: space-between; /* text left, logo right */
+  align-items: flex-start; /* align top */
 }
 
-.add-btn {
-  padding: 10px 16px;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.add-btn:hover {
-  background-color: #1e40af;
-}
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+.text-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: left;
 }
 
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 380px;
-  max-width: 90%;
-  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2);
+.card-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
 }
 
-.modal-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 16px;
+.card-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
 }
 
-.input {
-  width: 100%;
-  padding: 8px 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+.card-change {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
 }
 
-.search-results {
-  max-height: 80px;
-  overflow-y: auto;
-  margin-bottom: 12px;
-  border: 1px solid #eee;
-  border-radius: 6px;
-  color: black;
-}
-
-.search-item {
-  padding: 6px 8px;
-  cursor: pointer;
-}
-
-.search-item:hover {
-  background-color: #f0f0f0;
-}
-
-.modal-actions {
+.logo-container {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  align-items: flex-start;
 }
 
-.cancel-btn {
-  padding: 8px 14px;
-  background: #ccc;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.cancel-btn:hover {
-  background: #aaa;
-}
-
-.save-btn {
-  padding: 8px 14px;
-  background: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.save-btn:hover {
-  background: #1e40af;
-}
-
-.portfolio-debug {
-  margin-top: 20px;
-  width: 100%;
+.card-logo {
+  width: 2.5rem; /* adjust size */
+  height: 2.5rem;
+  object-fit: contain;
 }

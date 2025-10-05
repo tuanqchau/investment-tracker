@@ -11,22 +11,23 @@ const Card: React.FC<CardProps> = ({
 
   return (
     <div className="card-container">
-      {/* Logo */}
-      <div className="image-container">
-        <img src={logo} alt={`${name} logo`} className="card-image" />
-      </div>
-
-      {/* Content */}
-      <div className="content-container">
-        <h2 className="card-name">{name}</h2>
-        <p className="card-value">${amount.toLocaleString()}</p>
-      </div>
-
-      {/* Last Change */}
-      <div className="last-change-container" style={{ color: isPositive ? 'green' : 'red' }}>
+  <div className="card-header">
+    <div className="text-container">
+      <h2 className="card-name">{name}</h2>
+      <p className="card-value">${amount.toLocaleString()}</p>
+      <p
+        className="card-change"
+        style={{ color: isPositive ? "green" : "red" }}
+      >
         {isPositive ? "▲" : "▼"} {lastChange}%
-      </div>
+      </p>
     </div>
+    <div className="logo-container">
+      <img src={logo} alt={`${name} logo`} className="card-logo" />
+    </div>
+  </div>
+</div>
+
   );
 };
 
