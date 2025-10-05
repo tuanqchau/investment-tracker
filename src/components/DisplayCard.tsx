@@ -4,6 +4,10 @@ import '../styles/DisplayCard.css';
 import { FiArrowDownRight } from "react-icons/fi";
 import { FiArrowDownLeft } from "react-icons/fi";
 import { FiArrowUpRight } from "react-icons/fi";
+import { FaArrowCircleDown } from "react-icons/fa";
+import { FaArrowUp } from "react-icons/fa";
+
+import { FaArrowDown } from "react-icons/fa";
 
 const Card: React.FC<CardProps> = ({ 
     name, 
@@ -20,9 +24,12 @@ const Card: React.FC<CardProps> = ({
       <p className="card-value">${amount.toLocaleString()}</p>
       <p
         className="card-change"
-        style={{ color: isPositive ? "green" : "red" }}
+        style={{
+          color: isPositive ? "var(--green-primary)" : "var(--red-primary)",
+          fontWeight: "bold",
+        }}
       >
-        {isPositive ? <FiArrowUpRight/> : <FiArrowDownRight/>} {lastChange}%
+        {isPositive ? <FaArrowUp/> : <FaArrowDown/>} {lastChange}%
       </p>
     </div>
     <div className="logo-container">
