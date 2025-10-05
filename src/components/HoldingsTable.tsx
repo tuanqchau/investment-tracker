@@ -1,7 +1,11 @@
-import React from 'react';
-import { DataGrid } from '@mui/x-data-grid';
-import '../styles/HoldingsTable.css';
-import type { GridColDef } from '@mui/x-data-grid';
+import React, { useMemo } from "react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  createColumnHelper,
+} from "@tanstack/react-table";
+import "../styles/HoldingsTable.css";
 
 interface Holding {
   id: number;
@@ -17,94 +21,72 @@ interface HoldingsTableProps {
   holdings: Holding[];
 }
 
-const columns: GridColDef[] = [
-  { field: 'symbol', headerName: 'Symbol', flex: 1, resizable: false, disableColumnMenu: true,},
-  { field: 'quantity', headerName: 'Quantity', flex: 1,  resizable: false, disableColumnMenu: true,},
-  {
-    field: 'avgCost',
-    headerName: 'Avg Cost',
-    flex: 1,
-    resizable: false,
-    disableColumnMenu: true,
-    valueFormatter: ({ value }: { value: number | undefined }) => {
-      if (value == null || isNaN(value)) return '';
-      return `$${value.toFixed(2)}`;
-    },
-    
-  },
-  {
-    field: 'currentPrice',
-    headerName: 'Current Price',
-    flex: 1,
-    resizable: false,
-    disableColumnMenu: true,
-    valueFormatter: ({ value }: { value: number | undefined }) => {
-      if (value == null || isNaN(value)) return '';
-      return `$${value.toFixed(2)}`;
-    },
-   
-  },
-  {
-    field: 'marketValue',
-    headerName: 'Market Value',
-    flex: 1,
-    resizable: false,
-    disableColumnMenu: true,
-
-    valueFormatter: ({ value }: { value: number | undefined }) => {
-      if (value == null || isNaN(value)) return '';
-      return `$${value.toFixed(2)}`;
-    },
-
-  },
-  {
-    field: 'gainLoss',
-    headerName: 'Gain/Loss',
-    flex: 1,
-    resizable: false,
-    disableColumnMenu: true,
-    renderCell: (params: any) => {
-      const val = params?.value;
-      if (val == null || isNaN(val)) {
-        // Log unexpected values for debugging
-        // console.debug('HoldingsTable: invalid gainLoss value', val, params);
-        return '';
-      }
-      const isPositive = val >= 0;
-      const display = `${isPositive ? '+' : ''}${Number(val).toFixed(2)}%`;
-      return (
-        <span className={isPositive ? 'gain' : 'loss'}>
-          {display}
-        </span>
-      );
-    },
-  },
-];
-
 export default function HoldingsTable({ holdings }: HoldingsTableProps) {
+  const columnHelper = createColumnHelper<Holding>();
+
+  const columns = useMemo(
+    () => [
+      columnHelper.accessor("symbol", { header: "Symbol" }),
+      columnHelper.accessor("quantity", { header: "Quantity" }),
+      columnHelper.accessor("avgCost", {
+        header: "Avg Cost",
+        cell: (info) => `$${info.getValue().toFixed(2)}`,
+      }),
+      columnHelper.accessor("currentPrice", {
+        header: "Current Price",
+        cell: (info) => `$${info.getValue().toFixed(2)}`,
+      }),
+      columnHelper.accessor("marketValue", {
+        header: "Market Value",
+        cell: (info) => `$${info.getValue().toFixed(2)}`,
+      }),
+      columnHelper.accessor("gainLoss", {
+        header: "Gain/Loss",
+        cell: (info) => {
+          const val = info.getValue();
+          const isPositive = val >= 0;
+          const display = `${isPositive ? "+" : ""}${val.toFixed(2)}%`;
+          return (
+            <span className={isPositive ? "gain" : "loss"}>{display}</span>
+          );
+        },
+      }),
+    ],
+    []
+  );
+
+  const table = useReactTable({
+    data: holdings,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
-    <div style={{ height: 400, width: '100%' }}>
-      <DataGrid
-        rows={holdings}
-        columns={columns}
-        disableRowSelectionOnClick
-        sx={{
-          border: 0,
-          '& .MuiDataGrid-cell': { fontSize: 14 },
-          backgroundColor: '#21242C',
-          header: { backgroundColor: '#21242C' },
-          color: '#fff',
-          '& .MuiDataGrid-columnHeader': {
-            backgroundColor: '#3a3a3a', // slightly lighter for header
-          },
-        }}
-        // slotProps={{
-        //   loadingOverlay: {
-        //     variant: 'linear-progress',
-        //     noRowsVariant: 'skeleton',
-        //   },
-        // }}
-      />
+    <div className="holdings-table-container">
+      <table className="holdings-table">
+        <thead>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th key={header.id}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
