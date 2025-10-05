@@ -6,6 +6,11 @@ import dayjs, { Dayjs } from "dayjs";
 import { supabase } from "../supabaseClient";
 import HoldingsTable from "../components/HoldingsTable";
 import AddButton from "../components/AddTransactionButton";
+import { FaArrowTrendUp } from "react-icons/fa6";
+import { LuCircleDollarSign } from "react-icons/lu";
+import { PiPulseBold } from "react-icons/pi";
+
+
 
 // MUI imports
 import {
@@ -138,19 +143,21 @@ const Dashboard = () => {
     name: "Total Value",
     amount: 12500,
     lastChange: 5.2,
+    logo: <LuCircleDollarSign/>,
   };
 
   const totalGainLossCard: CardProps = {
     name: "Total Gain/Loss",
     amount: 3200,
     lastChange: -2.3,
-
+    logo: <FaArrowTrendUp/>,
   };
 
   const todaysChangeCard: CardProps = {
     name: "Today's Change",
     amount: 150,
     lastChange: 1.1,
+    logo: <PiPulseBold/>
   };
 
   const handleSave = async () => {

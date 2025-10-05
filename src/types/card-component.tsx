@@ -2,5 +2,5 @@ export type CardProps = {
   name: string;
   amount?: number;
   lastChange?: number;
-  logo?: string;
+  logo?: string | React.ReactNode; // allow image URL or React Icon
 };
