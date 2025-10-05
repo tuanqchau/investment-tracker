@@ -1,6 +1,9 @@
 import React from "react";
 import type { CardProps } from "../types/card-component";
 import '../styles/DisplayCard.css';
+import { FiArrowDownRight } from "react-icons/fi";
+import { FiArrowDownLeft } from "react-icons/fi";
+import { FiArrowUpRight } from "react-icons/fi";
 
 const Card: React.FC<CardProps> = ({ 
     name, 
@@ -19,11 +22,15 @@ const Card: React.FC<CardProps> = ({
         className="card-change"
         style={{ color: isPositive ? "green" : "red" }}
       >
-        {isPositive ? "▲" : "▼"} {lastChange}%
+        {isPositive ? <FiArrowUpRight/> : <FiArrowDownRight/>} {lastChange}%
       </p>
     </div>
     <div className="logo-container">
-      <img src={logo} alt={`${name} logo`} className="card-logo" />
+      {typeof logo === "string" ? (
+            <img src={logo} alt={`${name} logo`} className="card-logo" />
+          ) : (
+            logo
+          )}
     </div>
   </div>
 </div>
