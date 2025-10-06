@@ -10,12 +10,13 @@ interface AllocationPieProps {
 }
 
 export default function PortfolioPieChart({data}: AllocationPieProps) {
+    const totalValue = data.reduce((sum, d) => sum + d.marketValue, 0);
     const chartData = data.map((item) => ({
     id: item.id,
     value: item.marketValue,
-    label: item.symbol,
+    label: `${item.symbol}  (${((item.marketValue / totalValue) * 100).toFixed(2)}%)`,
     }));
-  const totalValue = data.reduce((sum, d) => sum + d.marketValue, 0);
+
 
   return (
     <div style={{ width: '50%', height: 300 }}>
@@ -29,9 +30,9 @@ export default function PortfolioPieChart({data}: AllocationPieProps) {
             cornerRadius: 1,
             highlightScope: { fade: 'global', highlight: 'item' },
             faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
-            arcLabel: (item) => `${((item.value / totalValue) * 100).toFixed(1)}%`,
+            arcLabel: (item) => `${((item.value / totalValue) * 100).toFixed(2)}%`,
             arcLabelMinAngle:35,
-
+            valueFormatter: (value) => `$${value.value.toLocaleString()}`,
           },
         ]}
         sx={{
