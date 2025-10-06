@@ -66,7 +66,7 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
       />
 
       <div style={{ width: '100%' }}>
-        <AddTransactionButton onClick={handleSignup} name="Log In" fullWidth/>
+        <AddTransactionButton onClick={handleSignup} name="SIGN UP" fullWidth/>
       </div>
 
       {error && (
@@ -90,7 +90,7 @@ const Signup: React.FC<SignupProps> = ({ onSwitchToLogin }) => {
           
         }}
       >
-        Sign In
+        LOG IN INSTEAD
       </Button>
     </Paper>
   );

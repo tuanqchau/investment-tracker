@@ -70,7 +70,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToSignup }) => {
         </Typography>
       )}
       <div style={{ width: '100%' }}>
-        <AddTransactionButton onClick={handleLogin} name="Log In" fullWidth/>
+        <AddTransactionButton onClick={handleLogin} name="LOG IN" fullWidth/>
       </div>
       
       <Button

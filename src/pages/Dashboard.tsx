@@ -215,11 +215,38 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   };
 
   return (
-    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "20px" }}>
-      <div style={{ textAlign: 'center', marginTop: 50 }}>
-        <h1>Welcome, {user.email}</h1>
-        <button onClick={handleLogout}>Log Out</button>
-      </div>
+    <div
+    style={{
+      padding: "20px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "20px",
+      width: "100%",
+      maxWidth: "1200px",
+      height: "100%",
+      paddingTop: "60px",   // to avoid overlap with fixed logout button
+      boxSizing: "border-box",
+      margin: "0 auto",        // horizontally center when smaller than parent
+    }}
+  >
+    <Button 
+      onClick={handleLogout}
+      sx={{
+        position: 'absolute',
+        top: '20px',
+        right: '20px',
+        bgcolor: 'transparent',
+        color: 'var(--primary-text)',
+        fontWeight: 'bold',
+        '&:hover': {
+          background: 'var(--tri-background)',
+        },
+        borderRadius: '10px',
+      }}
+    >
+      Log Out
+    </Button>
+    
       {/* Row 1: Add Transaction button */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <AddButton onClick={() => setIsModalOpen(true)} name="Add Transaction"/>

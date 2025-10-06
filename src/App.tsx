@@ -64,7 +64,24 @@ const App: React.FC = () => {
           )}
         </Box>
       ) : (
-        <Dashboard user={user} />
+
+          <Box
+  sx={{
+    height: '100vh', // ok to keep this
+    width: '100%',   // ✅ instead of 100vw
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    p: 0,
+    boxSizing: 'border-box',
+
+  }}
+>
+  <Dashboard user={user} />
+</Box>
+
+
+        
       )}
     </LocalizationProvider>
   );
