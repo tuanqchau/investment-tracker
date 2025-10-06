@@ -9,21 +9,27 @@ const Card: React.FC<CardProps> = ({
     name, 
     amount = 0, 
     lastChange = 0, 
+    showDollarSign = true,
     logo }) => {
-  const isPositive = lastChange >= 0;
 
   return (
     <div className="card-container">
   <div className="card-header">
     <div className="text-container">
       <h2 className="card-name">{name}</h2>
-      <p className="card-value">${amount.toLocaleString()}</p>
-      <p
-        className="card-change"
-        style={{ color: isPositive ? ('var(--green-yellow)') : ('var(--primary-red)') }}
-      >
-        {isPositive ? <FiArrowUpRight/> : <FiArrowDownRight/>} {lastChange}%
-      </p>
+      <p className="card-value">
+            {showDollarSign ? '$' : ''}{amount.toLocaleString()}
+          </p>
+      {lastChange !== 0 && (
+            <p
+              className="card-change"
+              style={{ 
+                color: lastChange > 0 ? 'var(--green-yellow)' : 'var(--primary-red)'
+              }}
+            >
+              {lastChange > 0 ? <FiArrowUpRight /> : <FiArrowDownRight />} {Math.abs(lastChange)}%
+            </p>
+      )}
     </div>
     <div className="logo-container">
       {typeof logo === "string" ? (
