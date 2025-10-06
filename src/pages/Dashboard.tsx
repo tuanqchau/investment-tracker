@@ -9,6 +9,7 @@ import AddButton from "../components/AddTransactionButton";
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { LuCircleDollarSign } from "react-icons/lu";
 import { PiPulseBold } from "react-icons/pi";
+import { BiSolidWallet } from "react-icons/bi";
 
 
 
@@ -146,26 +147,39 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   };
 
 
-  const totalValueCard: CardProps = {
-    name: "Total Value",
-    amount: 12500,
-    lastChange: 5.2,
-    logo: <LuCircleDollarSign/>,
-  };
+const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) => {
+  const totalValue = holdings.reduce((sum, holding) => sum + holding.marketValue, 0);
+  const totalGainLoss = holdings.reduce((sum, holding) => sum + (holding.marketValue - (holding.avgCost * holding.quantity)), 0);
+  const gainLossPercentage = Number(((totalGainLoss / (totalValue - totalGainLoss)) * 100).toFixed(2));
+  const totalAssets = holdings.length;
 
-  const totalGainLossCard: CardProps = {
-    name: "Total Gain/Loss",
-    amount: 3200,
-    lastChange: -2.3,
-    logo: <FaArrowTrendUp/>,
+  return {
+    totalValueCard: {
+      name: "Total Value",
+      amount: totalValue,
+      lastChange: gainLossPercentage,
+      logo: <LuCircleDollarSign/>,
+    },
+    totalGainLossCard: {
+      name: "Total Gain/Loss",
+      amount: totalGainLoss,
+      lastChange: gainLossPercentage,
+      logo: <FaArrowTrendUp/>,
+    },
+    todaysChangeCard: {
+      name: "Today's Change",
+      amount: totalGainLoss,
+      lastChange: gainLossPercentage,
+      logo: <PiPulseBold/>
+    },
+    totalAssetsCard: {
+      name: "Total Assets",
+      amount: totalAssets,
+      showDollarSign: false,
+      logo: <BiSolidWallet />
+    }
   };
-
-  const todaysChangeCard: CardProps = {
-    name: "Today's Change",
-    amount: 150,
-    lastChange: 1.1,
-    logo: <PiPulseBold/>
-  };
+};
 
   const handleSave = async () => {
     if (!date) return; // prevent saving without a date
@@ -263,9 +277,22 @@ const Dashboard: React.FC<Props> = ({ user }) => {
           justifyContent: "space-between",
         }}
       >
-        <Card {...totalValueCard}/>
-        <Card {...totalGainLossCard} />
-        <Card {...todaysChangeCard} />
+        {(() => {
+        if (isLoading) return null;
+        if (portfolio.length === 0) return null;
+        
+        const processedHoldings = processHoldingsData(portfolio);
+        const cards = calculateCardValues(processedHoldings);
+        
+        return (
+          <>
+            <Card {...cards.totalValueCard}/>
+            <Card {...cards.totalGainLossCard}/>
+            <Card {...cards.todaysChangeCard}/>
+            <Card {...cards.totalAssetsCard}/>
+          </>
+        );
+      })()}
       </div>
 
       {/* MUI Modal */}
@@ -336,6 +363,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
           if (portfolio.length === 0)
             return <Typography>No holdings found. Add your first transaction!</Typography>;
           const processedHoldings = processHoldingsData(portfolio);
+
           return <HoldingsTable holdings={processedHoldings} />;
         })()}
       </div>
