@@ -10,10 +10,6 @@ import { FaArrowTrendUp } from "react-icons/fa6";
 import { LuCircleDollarSign } from "react-icons/lu";
 import { PiPulseBold } from "react-icons/pi";
 import { BiSolidWallet } from "react-icons/bi";
-
-
-
-// MUI imports
 import {
   Button,
   Dialog,
@@ -26,8 +22,6 @@ import {
 } from "@mui/material";
 import AllocationPie from "../components/AllocationPie";
 
-import RecentTransactions from "../components/RecentTransactions";
-import type { Transaction } from "../components/RecentTransactions";
 const stockList = [
   "Apple (AAPL)",
   "Amazon (AMZN)",
@@ -35,17 +29,23 @@ const stockList = [
   "Tesla (TSLA)",
   "Nvidia (NVDA)",
 ];
+
 interface Props {
   user: {
     id: string;
     email: string | null;
   };
 }
+
 const Dashboard: React.FC<Props> = ({ user }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [price, setPrice] = useState("");
   const [shares, setShares] = useState("");
+  const [transactionType, setTransactionType] = useState("Buy"); // 👈 added
+  const [date, setDate] = useState<Dayjs | null>(null);
+  const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   interface PortfolioHolding {
     id: number;
@@ -55,26 +55,18 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     date_purchase: string;
   }
 
-  const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
-  const [date, setDate] = useState<Dayjs | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
   const processHoldingsData = (holdings: PortfolioHolding[]) => {
-    // Group holdings by symbol
     const groupedHoldings = holdings.reduce((acc, holding) => {
       const { symbol, shares, price } = holding;
-      if (!acc[symbol]) {
-        acc[symbol] = { totalShares: 0, totalCost: 0 };
-      }
+      if (!acc[symbol]) acc[symbol] = { totalShares: 0, totalCost: 0 };
       acc[symbol].totalShares += shares;
       acc[symbol].totalCost += shares * price;
       return acc;
-    }, {} as Record<string, { totalShares: number; totalCost: number; }>);
+    }, {} as Record<string, { totalShares: number; totalCost: number }>);
 
     return Object.entries(groupedHoldings).map(([symbol, data], index) => {
       const avgCost = data.totalCost / data.totalShares;
-      // TODO: Replace with actual current price from an API
-      const currentPrice = avgCost * 1.1; // Temporary: using 10% above avg cost as current price
+      const currentPrice = avgCost * 1.1; // temporary 10% increase
       const marketValue = currentPrice * data.totalShares;
       const gainLoss = ((currentPrice - avgCost) / avgCost) * 100;
 
@@ -90,137 +82,155 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     });
   };
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        console.log('Fetching data from Supabase...');
-        const { data, error } = await supabase
-          .from('portfolio')
-          .select('*')
-          .eq('user_id', user?.id);
-
-        console.log('Supabase response:', { data, error });
-        if (error) throw error;
-
-        if (data && isMounted) {
-          setPortfolio(data as PortfolioHolding[]);
-        }
-      } catch (error) {
-        console.error('Error fetching holdings:', error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user.id]);
-
   const fetchHoldings = async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('portfolio')
-        .select('*')
+        .from("portfolio")
+        .select("*")
         .eq("user_id", user.id);
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setPortfolio(data as PortfolioHolding[]);
-      }
+      if (error) throw error;
+      if (data) setPortfolio(data as PortfolioHolding[]);
     } catch (error) {
-      console.error('Error fetching holdings:', error);
+      console.error("Error fetching holdings:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchHoldings();
+  }, [user.id]);
 
-const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) => {
-  const totalValue = holdings.reduce((sum, holding) => sum + holding.marketValue, 0);
-  const totalGainLoss = holdings.reduce((sum, holding) => sum + (holding.marketValue - (holding.avgCost * holding.quantity)), 0);
-  const gainLossPercentage = Number(((totalGainLoss / (totalValue - totalGainLoss)) * 100).toFixed(2));
-  const totalAssets = holdings.length;
+  const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) => {
+    const totalValue = holdings.reduce((sum, holding) => sum + holding.marketValue, 0);
+    const totalGainLoss = holdings.reduce(
+      (sum, h) => sum + (h.marketValue - h.avgCost * h.quantity),
+      0
+    );
+    const gainLossPercentage = Number(
+      ((totalGainLoss / (totalValue - totalGainLoss)) * 100).toFixed(2)
+    );
+    const totalAssets = holdings.length;
 
-  return {
-    totalValueCard: {
-      name: "Total Value",
-      amount: totalValue,
-      lastChange: gainLossPercentage,
-      logo: <LuCircleDollarSign/>,
-    },
-    totalGainLossCard: {
-      name: "Total Gain/Loss",
-      amount: totalGainLoss,
-      lastChange: gainLossPercentage,
-      logo: <FaArrowTrendUp/>,
-    },
-    todaysChangeCard: {
-      name: "Today's Change",
-      amount: totalGainLoss,
-      lastChange: gainLossPercentage,
-      logo: <PiPulseBold/>
-    },
-    totalAssetsCard: {
-      name: "Total Assets",
-      amount: totalAssets,
-      showDollarSign: false,
-      logo: <BiSolidWallet />
-    }
+    return {
+      totalValueCard: {
+        name: "Total Value",
+        amount: totalValue,
+        lastChange: gainLossPercentage,
+        logo: <LuCircleDollarSign />,
+      },
+      totalGainLossCard: {
+        name: "Total Gain/Loss",
+        amount: totalGainLoss,
+        lastChange: gainLossPercentage,
+        logo: <FaArrowTrendUp />,
+      },
+      todaysChangeCard: {
+        name: "Today's Change",
+        amount: totalGainLoss,
+        lastChange: gainLossPercentage,
+        logo: <PiPulseBold />,
+      },
+      totalAssetsCard: {
+        name: "Total Assets",
+        amount: totalAssets,
+        showDollarSign: false,
+        logo: <BiSolidWallet />,
+      },
+    };
   };
-};
 
-  const handleSave = async () => {
-    if (!date) return; // prevent saving without a date
+  // 🟢 BUY FUNCTION (existing logic, just renamed)
+  const handleBuy = async () => {
+    if (!date) return;
     if (!user?.id) {
-        alert("User not logged in");
-        return;
+      alert("User not logged in");
+      return;
     }
-    // Extract stock symbol from the search string (e.g., "Apple (AAPL)" -> "AAPL")
+
     const symbolMatch = search.match(/\(([^)]+)\)/);
     const symbol = symbolMatch ? symbolMatch[1] : search;
 
     const newHolding = {
       user_id: user.id,
-      symbol: symbol,
+      symbol,
       price: parseFloat(price),
       shares: parseInt(shares),
-      date_purchase: date.format("YYYY-MM-DD"),
+      date: date.format("YYYY-MM-DD"),
     };
 
-    console.log('Attempting to save holding:', newHolding);
-
     try {
-      const { data, error } = await supabase
-        .from('portfolio')
-        .insert([newHolding])
-        .select();
-
+      const { error } = await supabase.from("portfolio").insert([newHolding]);
       if (error) throw error;
-
-      // Refresh the holdings list
       await fetchHoldings();
-      setIsModalOpen(false);
-      
-      // Reset form
-      setSearch("");
-      setPrice("");
-      setShares("");
-      setDate(null);
+
+
+      resetForm();
     } catch (error) {
-      console.error('Error saving holding:', error);
-      alert('Error saving holding. Please try again.');
+      console.error("Error saving holding:", error);
+      alert("Error saving holding. Please try again.");
+    }
+
+    const { error: transactionError } = await supabase
+      .from("transactions")
+      .insert([
+        {
+          user_id: user.id,
+          symbol: symbol,
+          type: "Buy",
+          shares: parseFloat(shares),
+          price: parseFloat(price),
+          date: date.format("YYYY-MM-DD"),
+        },
+      ]);
+
+    if (transactionError) throw transactionError;
+  };
+
+  const handleSell = async () => {
+  if (!user?.id) return alert("User not logged in");
+  if (!search || !shares || !price || !date) return alert("All fields are required");
+
+  // Extract symbol (e.g., "Apple (AAPL)" → "AAPL")
+  const symbolMatch = search.match(/\(([^)]+)\)/);
+  const symbol = symbolMatch ? symbolMatch[1] : search;
+
+  try {
+    const { data, error } = await supabase.rpc("sell_fifo", {
+      p_user_id: user.id,
+      p_symbol: symbol,
+      p_shares: parseFloat(shares),
+      p_price: parseFloat(price),
+      p_date: date.format("YYYY-MM-DD"),
+    });
+
+    if (error) throw error;
+
+    alert(data || "Sell completed!");
+    await fetchHoldings(); // refresh UI
+    setIsModalOpen(false);
+  } catch (err) {
+    console.error("Sell error:", err);
+    alert("Error processing sell. Please check console for details.");
+  }
+};
+
+  // 🧹 Helper
+  const resetForm = () => {
+    setIsModalOpen(false);
+    setSearch("");
+    setPrice("");
+    setShares("");
+    setDate(null);
+    setTransactionType("Buy");
+  };
+
+  const handleSave = async () => {
+    if (transactionType === "Buy") {
+      await handleBuy();
+    } else {
+      await handleSell();
     }
   };
 
@@ -230,45 +240,43 @@ const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) =
 
   return (
     <div
-    style={{
-      padding: "20px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "20px",
-      width: "100%",
-      maxWidth: "1200px",
-      height: "100%",
-      paddingTop: "60px",   // to avoid overlap with fixed logout button
-      boxSizing: "border-box",
-      margin: "0 auto",        // horizontally center when smaller than parent
-    }}
-  >
-    <Button 
-      onClick={handleLogout}
-      sx={{
-        position: 'absolute',
-        top: '20px',
-        right: '20px',
-        bgcolor: 'transparent',
-        color: 'var(--primary-text)',
-        fontWeight: 'bold',
-        '&:hover': {
-          background: 'var(--tri-background)',
-        },
-        borderRadius: '10px',
+      style={{
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "20px",
+        width: "100%",
+        maxWidth: "1200px",
+        paddingTop: "60px",
+        boxSizing: "border-box",
+        margin: "0 auto",
       }}
     >
-      Log Out
-    </Button>
-    
-      {/* Row 1: Add Transaction button */}
+      <Button
+        onClick={handleLogout}
+        sx={{
+          position: "absolute",
+          top: "20px",
+          right: "20px",
+          bgcolor: "transparent",
+          color: "var(--primary-text)",
+          fontWeight: "bold",
+          "&:hover": {
+            background: "var(--tri-background)",
+          },
+          borderRadius: "10px",
+        }}
+      >
+        Log Out
+      </Button>
+
+      {/* Add Transaction */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <AddButton onClick={() => setIsModalOpen(true)} name="Add Transaction"/>
+        <AddButton onClick={() => setIsModalOpen(true)} name="Add Transaction" />
       </div>
 
-      {/* Row 2: Portfolio summary cards */}
+      {/* Summary Cards */}
       <div
-        className="portfolio-summary-container"
         style={{
           display: "flex",
           gap: "20px",
@@ -277,32 +285,37 @@ const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) =
           justifyContent: "space-between",
         }}
       >
-        {(() => {
-        if (isLoading) return null;
-        if (portfolio.length === 0) return null;
-        
-        const processedHoldings = processHoldingsData(portfolio);
-        const cards = calculateCardValues(processedHoldings);
-        
-        return (
-          <>
-            <Card {...cards.totalValueCard}/>
-            <Card {...cards.totalGainLossCard}/>
-            <Card {...cards.todaysChangeCard}/>
-            <Card {...cards.totalAssetsCard}/>
-          </>
-        );
-      })()}
+        {!isLoading && portfolio.length > 0 && (() => {
+          const processed = processHoldingsData(portfolio);
+          const cards = calculateCardValues(processed);
+          return (
+            <>
+              <Card {...cards.totalValueCard} />
+              <Card {...cards.totalGainLossCard} />
+              <Card {...cards.todaysChangeCard} />
+              <Card {...cards.totalAssetsCard} />
+            </>
+          );
+        })()}
       </div>
 
-      {/* MUI Modal */}
+      {/* Modal */}
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="sm" fullWidth>
-
         <DialogTitle>Add Transaction</DialogTitle>
-
         <DialogContent>
+          <TextField
+            select
+            label="Transaction Type"
+            value={transactionType}
+            onChange={(e) => setTransactionType(e.target.value)}
+            SelectProps={{ native: true }}
+            fullWidth
+            margin="dense"
+          >
+            <option value="Buy">Buy</option>
+            <option value="Sell">Sell</option>
+          </TextField>
 
-          {/* Autocomplete for stock selection */}
           <Autocomplete
             options={stockList}
             value={search}
@@ -310,20 +323,18 @@ const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) =
             renderInput={(params) => (
               <TextField {...params} label="Search stock" margin="dense" fullWidth />
             )}
-            freeSolo // allows typing custom values if not in list
+            freeSolo
           />
 
-          {/* Price */}
           <TextField
             fullWidth
             type="number"
-            label="Price Purchased"
+            label={transactionType === "Buy" ? "Price Purchased" : "Price Sold"}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             margin="dense"
           />
 
-          {/* Shares */}
           <TextField
             fullWidth
             type="number"
@@ -334,47 +345,39 @@ const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) =
           />
 
           <DatePicker
-            label="Purchase Date"
-            value={date} // Dayjs | null
+            label={transactionType === "Buy" ? "Purchase Date" : "Sell Date"}
+            value={date}
             onChange={(newDate: Dayjs | null) => setDate(newDate)}
             slotProps={{ textField: { fullWidth: true, margin: "dense" } }}
           />
-
         </DialogContent>
 
         <DialogActions>
-
           <Button onClick={() => setIsModalOpen(false)} color="secondary">
             Cancel
           </Button>
           <Button onClick={handleSave} variant="contained" color="primary">
             Save
           </Button>
-
         </DialogActions>
-
       </Dialog>
 
-
-      {/* Row 3: Portfolio Holdings Table */}
+      {/* Holdings Table */}
       <div style={{ width: "100%" }}>
-        {(() => {
-          if (isLoading) return <Typography>Loading...</Typography>;
-          if (portfolio.length === 0)
-            return <Typography>No holdings found. Add your first transaction!</Typography>;
-          const processedHoldings = processHoldingsData(portfolio);
-
-          return <HoldingsTable holdings={processedHoldings} />;
-        })()}
+        {isLoading ? (
+          <Typography>Loading...</Typography>
+        ) : portfolio.length === 0 ? (
+          <Typography>No holdings found. Add your first transaction!</Typography>
+        ) : (
+          <HoldingsTable holdings={processHoldingsData(portfolio)} />
+        )}
       </div>
 
-      {/* Row 4: Portfolio Allocation Pie Chart */}
+      {/* Allocation Pie */}
       <div style={{ width: "100%" }}>
         <AllocationPie data={processHoldingsData(portfolio)} />
       </div>
-
-  </div>
-
+    </div>
   );
 };
 
