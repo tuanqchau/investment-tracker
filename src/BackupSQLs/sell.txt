@@ -1,0 +1,54 @@
+-- Create a stored procedure to handle FIFO sells safely
+create or replace function sell_fifo(
+  p_user_id uuid,
+  p_symbol text,
+  p_shares numeric,
+  p_price numeric,
+  p_date date
+)
+returns text
+language plpgsql
+as $$
+declare
+  v_remaining numeric := p_shares;
+  v_lot record;
+  v_total_sold numeric := 0;
+  
+begin
+  -- Loop through lots in FIFO order
+  for v_lot in
+    select * from portfolio
+    where user_id = p_user_id and symbol = p_symbol
+    order by date asc
+  loop
+    exit when v_remaining <= 0;
+
+    if v_lot.shares <= v_remaining then
+      v_remaining := v_remaining - v_lot.shares;
+      v_total_sold := v_total_sold + v_lot.shares;
+
+      delete from portfolio where id = v_lot.id;
+
+    else
+      update portfolio
+      set shares = v_lot.shares - v_remaining
+      where id = v_lot.id;
+
+      v_total_sold := v_total_sold + v_remaining;
+      v_remaining := 0;
+    end if;
+  end loop;
+
+  -- Check if user had enough shares
+  if v_remaining > 0 then
+    raise exception 'Not enough shares to sell';
+  end if;
+
+  v_total_price := p_shares * p_price;
+  -- Record the sell in the transactions table
+  insert into transactions (user_id, symbol, type, shares, price, date, total)
+  values (p_user_id, p_symbol, 'Sell', p_shares, p_price, p_date, v_total_price);
+
+  return 'Sell completed successfully';
+end;
+$$;

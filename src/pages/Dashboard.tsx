@@ -21,6 +21,8 @@ import {
   Autocomplete,
 } from "@mui/material";
 import AllocationPie from "../components/AllocationPie";
+import RecentTransactions from "../components/RecentTransactions";
+import type Transaction from "../components/RecentTransactions";
 
 const stockList = [
   "Apple (AAPL)",
@@ -46,6 +48,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   const [date, setDate] = useState<Dayjs | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [transactions, setTransactions] = useState<Transactions[]>([]);
 
   interface PortfolioHolding {
     id: number;
@@ -55,6 +58,14 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     date_purchase: string;
   }
 
+  interface Transactions {
+    id: number;
+    symbol: string;
+    type: string;
+    shares: number;
+    price: number;
+    date: string;
+  }
   const processHoldingsData = (holdings: PortfolioHolding[]) => {
     const groupedHoldings = holdings.reduce((acc, holding) => {
       const { symbol, shares, price } = holding;
@@ -82,6 +93,25 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     });
   };
 
+  const fetchTransactions = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false });
+      if (error) throw error;
+      if (data) {
+        console.log("Fetched transactions:", data);
+        setTransactions(data as Transactions[]);
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
   const fetchHoldings = async () => {
     try {
       setIsLoading(true);
@@ -100,6 +130,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
 
   useEffect(() => {
     fetchHoldings();
+    fetchTransactions();
   }, [user.id]);
 
   const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) => {
@@ -178,10 +209,11 @@ const Dashboard: React.FC<Props> = ({ user }) => {
         {
           user_id: user.id,
           symbol: symbol,
-          type: "Buy",
+          type: "BUY",
           shares: parseFloat(shares),
           price: parseFloat(price),
           date: date.format("YYYY-MM-DD"),
+          total: parseFloat(price) * parseFloat(shares),
         },
       ]);
 
@@ -209,6 +241,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
 
     alert(data || "Sell completed!");
     await fetchHoldings(); // refresh UI
+    resetForm();
     setIsModalOpen(false);
   } catch (err) {
     console.error("Sell error:", err);
@@ -232,6 +265,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     } else {
       await handleSell();
     }
+    await fetchTransactions(); // Refresh transactions after adding a new one
   };
 
   const handleLogout = async () => {
@@ -373,9 +407,14 @@ const Dashboard: React.FC<Props> = ({ user }) => {
         )}
       </div>
 
-      {/* Allocation Pie */}
-      <div style={{ width: "100%" }}>
-        <AllocationPie data={processHoldingsData(portfolio)} />
+      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', width: '100%' }}>
+        <div style={{ flex: '1 1 480px', minWidth: 320 }}>
+          <AllocationPie data={processHoldingsData(portfolio)} />
+        </div>
+
+        <div style={{ flex: '1 1 360px', minWidth: 320, paddingTop: 30 }}>
+          <RecentTransactions transactions={transactions} />
+        </div>
       </div>
     </div>
   );

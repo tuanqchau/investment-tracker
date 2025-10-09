@@ -8,11 +8,13 @@ import Chip from '@mui/material/Chip';
 
 export type Transaction = {
   id: number | string;
-  type: 'BUY' | 'SELL';
+  type: string; // 'BUY' | 'SELL'
   symbol: string;
-  quantity: number;
+  shares: number;
   price: number; // per-share price
-  timestamp: string | number | Date;
+  date: string | number | Date;
+  cost_basis?: number; // optional, total cost basis
+  gain_loss?: number; // optional, total gain/loss
 };
 
 interface RecentTransactionsProps {
@@ -33,18 +35,16 @@ export default function RecentTransactions({ transactions, maxItems = 6 }: Recen
     return <Typography variant="body2" color="text.secondary">No recent transactions</Typography>;
   }
 
-  const sorted = [...transactions].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+
 
   return (
     <List sx={{ width: '100%', bgcolor: 'transparent', color: '#fff', padding: 0 }}>
-      {sorted.slice(0, maxItems).map((tx, idx) => {
-        const total = tx.quantity * tx.price;
+      {transactions.slice(0, maxItems).map((tx, idx) => {
+        const total = tx.shares * tx.price;
         const qtyFormatted =
-          Math.abs(tx.quantity) < 1 && !Number.isInteger(tx.quantity)
-            ? tx.quantity.toFixed(4)
-            : tx.quantity.toString();
+          Math.abs(tx.shares) < 1 && !Number.isInteger(tx.shares)
+            ? tx.shares.toFixed(4)
+            : tx.shares.toString();
 
         return (
           <React.Fragment key={tx.id}>
@@ -56,7 +56,7 @@ export default function RecentTransactions({ transactions, maxItems = 6 }: Recen
                   sx={{
                     minWidth: 48,
                     fontWeight: 700,
-                    bgcolor: tx.type === 'BUY' ? '#1976d2' : '#3a3a3a',
+                    bgcolor: tx.type === 'BUY' ? '#1fc0e0ff' : '#E91E63',
                     color: '#fff',
                   }}
                 />
@@ -65,22 +65,40 @@ export default function RecentTransactions({ transactions, maxItems = 6 }: Recen
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     {tx.symbol}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.3 }}>
+                  <Typography variant="body2" sx={{ mt: 0.3}}>
                     {qtyFormatted} @ {currency(tx.price)}
                   </Typography>
                 </Box>
-
+                <Box>
+                  {tx.gain_loss != null && (
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color:
+                          tx.gain_loss > 0
+                            ? 'var(--green-yellow)'
+                            : tx.gain_loss < 0
+                            ? 'var(--primary-red)'
+                            : 'text.secondary',
+                        fontWeight: 700,
+                      }}
+                    >
+                      {tx.gain_loss > 0 ? '+' : ''}
+                      {currency(tx.gain_loss)}
+                    </Typography>
+                  )}
+                </Box>
                 <Box sx={{ textAlign: 'right', minWidth: 120 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     {currency(total)}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.3 }}>
-                    {shortDate(tx.timestamp)}
-                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.3 }}>
+                    {shortDate(tx.date)}
+                  </Typography>      
                 </Box>
               </Box>
             </ListItem>
-            {idx !== Math.min(sorted.length, maxItems) - 1 && <Divider component="li" sx={{ borderColor: '#2b2b2b' }} />}
+            {idx !== Math.min(transactions.length, maxItems) - 1 && <Divider component="li" sx={{ borderColor: '#2b2b2b' }} />}
           </React.Fragment>
         );
       })}
