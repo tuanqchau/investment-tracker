@@ -65,20 +65,20 @@ const App: React.FC = () => {
         </Box>
       ) : (
 
-          <Box
-  sx={{
-    height: '100vh', // ok to keep this
-    width: '100%',   // ✅ instead of 100vw
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    p: 0,
-    boxSizing: 'border-box',
+        <Box
+          sx={{
+            height: '100vh', // ok to keep this
+            width: '100%',   // ✅ instead of 100vw
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            p: 0,
+            boxSizing: 'border-box',
 
-  }}
->
-  <Dashboard user={user} />
-</Box>
+          }}
+        >
+          <Dashboard user={user} />
+        </Box>
 
 
         

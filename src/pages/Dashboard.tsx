@@ -336,7 +336,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
       >
         Log Out
       </Button>
-      
+
       {/* Market Cards */}
       <div
         style={{
@@ -353,7 +353,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
       </div>
 
       {/* Add Transaction */}
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 35 }}>
         <AddButton onClick={() => setIsModalOpen(true)} name="Add Transaction" />
       </div>
 
