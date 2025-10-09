@@ -10,15 +10,17 @@ interface AllocationPieProps {
 }
 
 export default function PortfolioPieChart({data}: AllocationPieProps) {
-    const chartData = data.map((item) => ({
+  const totalValue = data.reduce((sum, d) => sum + d.marketValue, 0);
+  
+  
+  const chartData = data.map((item) => ({
     id: item.id,
     value: item.marketValue,
-    label: item.symbol,
+    label: `${item.symbol}  (${((item.marketValue/totalValue) * 100).toFixed(1)}%)`,
     }));
-  const totalValue = data.reduce((sum, d) => sum + d.marketValue, 0);
 
   return (
-    <div style={{ width: '50%', height: 300 }}>
+    <div style={{ width: '100%', height: 300 }}>
       <PieChart
         series={[
           {
@@ -31,6 +33,7 @@ export default function PortfolioPieChart({data}: AllocationPieProps) {
             faded: { innerRadius: 30, additionalRadius: -30, color: 'gray' },
             arcLabel: (item) => `${((item.value / totalValue) * 100).toFixed(1)}%`,
             arcLabelMinAngle:35,
+            
 
           },
         ]}
