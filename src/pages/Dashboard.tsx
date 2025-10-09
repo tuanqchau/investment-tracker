@@ -22,7 +22,40 @@ import {
 } from "@mui/material";
 import AllocationPie from "../components/AllocationPie";
 import RecentTransactions from "../components/RecentTransactions";
-import type Transaction from "../components/RecentTransactions";
+import MarketCard from "../components/MarketCard";
+
+const marketData = [
+  {
+    name: "Dow Jones",
+    value: 46601.78,
+    changeAmount: "(-1.20)",
+    changePercent: "-0.00%",
+  },
+  {
+    name: "S&P 500",
+    value: 6753.72,
+    changeAmount: "(+39.13)",
+    changePercent: "+0.58%",
+  },
+  {
+    name: "Nasdaq",
+    value: 23043.38,
+    changeAmount: "(+255.01)",
+    changePercent: "+1.12%",
+  },
+  {
+    name: "Russell",
+    value: 2483.99,
+    changeAmount: "(+25.57)",
+    changePercent: "+1.04%",
+  },
+  {
+    name: "VIX",
+    value: 16.3,
+    changeAmount: "(-0.94)",
+    changePercent: "-5.45%",
+  },
+];
 
 const stockList = [
   "Apple (AAPL)",
@@ -303,6 +336,21 @@ const Dashboard: React.FC<Props> = ({ user }) => {
       >
         Log Out
       </Button>
+      
+      {/* Market Cards */}
+      <div
+        style={{
+          display: "flex",
+          gap: "16px",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          marginTop: "20px",
+        }}
+      >
+        {marketData.map((m) => (
+          <MarketCard key={m.name} {...m} />
+        ))}
+      </div>
 
       {/* Add Transaction */}
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
