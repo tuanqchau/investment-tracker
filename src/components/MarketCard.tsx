@@ -1,11 +1,14 @@
 import React from "react";
 import { FaArrowCircleDown, FaArrowCircleUp } from "react-icons/fa";
 import '../styles/MarketCard.css';
+import TrendAreaChart from "./AreaChart";
+import type { DataPoint } from "./AreaChart";
 export interface MarketCardProps {
   name: string;
   value: number;
   changeAmount: string;
   changePercent: string;
+  chartData: DataPoint[];
 }
 
 const MarketCard: React.FC<MarketCardProps> = ({
@@ -13,6 +16,7 @@ const MarketCard: React.FC<MarketCardProps> = ({
   value,
   changeAmount,
   changePercent,
+  chartData
 }) => {
   const isPositive = changePercent.trim().startsWith("+");
 
@@ -41,7 +45,9 @@ const MarketCard: React.FC<MarketCardProps> = ({
         className={`market-chart ${
           isPositive ? "chart-up" : "chart-down"
         }`}
-      ></div>
+      >
+        <TrendAreaChart data={chartData} />
+      </div>
     </div>
   );
 };

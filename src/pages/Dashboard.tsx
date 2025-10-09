@@ -304,6 +304,74 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
+// Dow Jones - Negative trend
+const dowJonesData = [
+  { value: 46600 },
+  { value: 46580 },
+  { value: 46550 },
+  { value: 46520 },
+  { value: 46500 },
+  { value: 46480 },
+  { value: 46450 },
+  { value: 46420 },
+  { value: 46400 },
+  { value: 46380 },
+  { value: 46360 },
+  { value: 46340 },
+  { value: 46358.42 }
+];
+
+// S&P 500 - Negative trend
+const sp500Data = [
+  { value: 6755 },
+  { value: 6752 },
+  { value: 6748 },
+  { value: 6745 },
+  { value: 6742 },
+  { value: 6740 },
+  { value: 6738 },
+  { value: 6736 },
+  { value: 6735 },
+  { value: 6735.11 }
+];
+
+// Nasdaq - Negative trend
+const nasdaqData = [
+  { value: 23045 },
+  { value: 23040 },
+  { value: 23035 },
+  { value: 23030 },
+  { value: 23028 },
+  { value: 23025 },
+  { value: 23024.62 }
+];
+
+// Russell - Negative trend
+const russellData = [
+  { value: 2485 },
+  { value: 2483 },
+  { value: 2480 },
+  { value: 2478 },
+  { value: 2476 },
+  { value: 2474 },
+  { value: 2472 },
+  { value: 2470 },
+  { value: 2468.85 }
+];
+
+// VIX - Positive trend
+const vixData = [
+  { value: 16.30 },
+  { value: 16.28 },
+  { value: 16.25 },
+  { value: 16.27 },
+  { value: 16.30 },
+  { value: 16.32 },
+  { value: 16.35 },
+  { value: 16.38 },
+  { value: 16.40 },
+  { value: 16.43 }
+];
 
   return (
     <div
@@ -347,9 +415,42 @@ const Dashboard: React.FC<Props> = ({ user }) => {
           marginTop: "20px",
         }}
       >
-        {marketData.map((m) => (
-          <MarketCard key={m.name} {...m} />
-        ))}
+        <MarketCard
+        name="S&P 500"
+        value={2468.85}
+        changeAmount="(-15.14)"
+        changePercent="-0.61%"
+        chartData={sp500Data}
+      />
+      <MarketCard
+        name="Nasdaq"
+        value={2468.85}
+        changeAmount="(-15.14)"
+        changePercent="-0.61%"
+        chartData={nasdaqData}
+      />
+      <MarketCard
+        name="Dow Jones"
+        value={2468.85}
+        changeAmount="(-15.14)"
+        changePercent="-0.61%"
+        chartData={dowJonesData}
+      />
+        <MarketCard
+        name="Russell"
+        value={2468.85}
+        changeAmount="(-15.14)"
+        changePercent="-0.61%"
+        chartData={russellData}
+      />
+        <MarketCard
+        name="VIX"
+        value={16.43}
+        changeAmount="(-0.13)"
+        changePercent="+0.80%"
+        chartData={vixData}
+      />
+      
       </div>
 
       {/* Add Transaction */}

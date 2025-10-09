@@ -54,18 +54,4 @@
   margin-top: 12px;
 }
 
-.chart-up {
-  background: linear-gradient(
-    to right,
-    rgba(76, 175, 80, 0.3),
-    rgba(129, 199, 132, 0.3)
-  );
-}
 
-.chart-down {
-  background: linear-gradient(
-    to right,
-    rgba(229, 57, 53, 0.3),
-    rgba(244, 143, 177, 0.3)
-  );
-}
