@@ -77,44 +77,46 @@ export default function PortfolioRating({ holdings, supabaseUrl, supabaseAnonKey
   return (
     <div className="portfolio-rating-container">
       <div className="portfolio-rating-card">
-        <h2 className="portfolio-rating-title">
-          <TrendingUp className="icon" />
-          Portfolio Analysis
-        </h2>
 
-        <button
-          onClick={analyzePortfolio}
-          disabled={loading || holdings.length === 0}
-          className="analyze-button"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="icon icon-spin" />
-              Analyzing...
-            </>
-          ) : (
-            'Analyze Portfolio'
-          )}
-        </button>
+        <div className="portfolio-rating-header">
+          <h2 className="portfolio-rating-title">
+            <TrendingUp className="icon" />
+            Portfolio Analysis
+          </h2>
+
+          <button
+            onClick={analyzePortfolio}
+            disabled={loading || holdings.length === 0}
+            className="analyze-button"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="icon icon-spin" />
+                Analyzing...
+              </>
+            ) : (
+              'Analyze Portfolio'
+            )}
+          </button>
+
+        </div>
+        
 
         {holdings.length === 0 && (
           <p className="no-holdings-text">
             No holdings to analyze
           </p>
         )}
-      </div>
-
-      {error && (
-        <div className="error-container">
-          <AlertCircle className="error-icon" />
-          <div>
-            <h3 className="error-title">Error</h3>
-            <p className="error-message">{error}</p>
+        {error && (
+          <div className="error-container">
+            <AlertCircle className="error-icon" />
+            <div>
+              <h3 className="error-title">Error</h3>
+              <p className="error-message">{error}</p>
+            </div>
           </div>
-        </div>
-      )}
-
-      {rating && (
+        )}
+        {rating && (
         <div className="rating-card">
           <div className="rating-header">
             <h3 className="rating-title">Rating</h3>
@@ -139,6 +141,11 @@ export default function PortfolioRating({ holdings, supabaseUrl, supabaseAnonKey
           </div>
         </div>
       )}
+      </div>
+
+
+
+      
     </div>
   );
 }
