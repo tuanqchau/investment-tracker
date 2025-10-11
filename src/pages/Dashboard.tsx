@@ -399,7 +399,7 @@ const vixData = [
         margin: "0 auto",
       }}
     >
-      <Button
+      {/* <Button
         onClick={handleLogout}
         sx={{
           position: "absolute",
@@ -415,7 +415,7 @@ const vixData = [
         }}
       >
         Log Out
-      </Button>
+      </Button> */}
 
       {/* Market Cards */}
       <div
