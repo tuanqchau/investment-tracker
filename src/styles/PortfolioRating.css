@@ -146,7 +146,7 @@
 .rating-number {
   font-size: 2.25rem;
   font-weight: bold;
-  color: #2563eb;
+  color: #2c67e7;
 }
 
 .rating-max {
@@ -163,7 +163,7 @@
 }
 
 .progress-bar {
-  background: linear-gradient(to right, #3b82f6, var(--neon-blue));
+  background: linear-gradient(to right,var(--neon-blue),#3b82f6);
   height: 100%;
   border-radius: 9999px;
   transition: width 0.5s ease;

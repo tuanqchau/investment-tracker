@@ -79,11 +79,13 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   const [search, setSearch] = useState("");
   const [price, setPrice] = useState("");
   const [shares, setShares] = useState("");
-  const [transactionType, setTransactionType] = useState("Buy"); // 👈 added
+  const [transactionType, setTransactionType] = useState("Buy");
   const [date, setDate] = useState<Dayjs | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioHolding[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<Transactions[]>([]);
+  const [stockPrices, setStockPrices] = useState<Record<string, number>>({});
+  const [previousClosePrices, setPreviousClosePrices] = useState<Record<string, number>>({});
 
   interface PortfolioHolding {
     id: number;
@@ -101,6 +103,30 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     price: number;
     date: string;
   }
+
+  // Fetch current and previous close prices for all symbols
+  const fetchStockPrices = async (symbols: string[]) => {
+    const prices: Record<string, number> = {};
+    const prevPrices: Record<string, number> = {};
+    
+    await Promise.all(
+      symbols.map(async (symbol) => {
+        try {
+          const quoteData = await fetchQuote(symbol);
+          if (quoteData && quoteData.c && quoteData.pc) {
+            prices[symbol] = quoteData.c; // current price
+            prevPrices[symbol] = quoteData.pc; // previous close
+          }
+        } catch (error) {
+          console.error(`Error fetching price for ${symbol}:`, error);
+        }
+      })
+    );
+    
+    setStockPrices(prices);
+    setPreviousClosePrices(prevPrices);
+  };
+
   const processHoldingsData = (holdings: PortfolioHolding[]) => {
     const groupedHoldings = holdings.reduce((acc, holding) => {
       const { symbol, shares, price } = holding;
@@ -112,7 +138,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
 
     return Object.entries(groupedHoldings).map(([symbol, data], index) => {
       const avgCost = data.totalCost / data.totalShares;
-      const currentPrice = avgCost * 1.1; // temporary 10% increase
+      const currentPrice = stockPrices[symbol] || avgCost; // Use real price or fallback
       const marketValue = currentPrice * data.totalShares;
       const gainLoss = ((currentPrice - avgCost) / avgCost) * 100;
 
@@ -147,6 +173,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
       setIsLoading(false);
     }
   }
+
   const fetchHoldings = async () => {
     try {
       setIsLoading(true);
@@ -155,7 +182,13 @@ const Dashboard: React.FC<Props> = ({ user }) => {
         .select("*")
         .eq("user_id", user.id);
       if (error) throw error;
-      if (data) setPortfolio(data as PortfolioHolding[]);
+      if (data) {
+        setPortfolio(data as PortfolioHolding[]);
+        
+        // Extract unique symbols and fetch their prices
+        const uniqueSymbols = [...new Set(data.map((h: PortfolioHolding) => h.symbol))];
+        await fetchStockPrices(uniqueSymbols);
+      }
     } catch (error) {
       console.error("Error fetching holdings:", error);
     } finally {
@@ -166,27 +199,29 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   useEffect(() => {
     fetchHoldings();
     fetchTransactions();
-    getStockQuote();
   }, [user.id]);
-  async function getStockQuote(){
-    try {
-        const quoteData = await fetchQuote("AAPL");
-        const profileData = await fetchCompanyProfile("AAPL");
-        console.log("Quote Data:", quoteData);
-        console.log("Profile Data:", profileData);
-    } catch (error) {
-      console.error("Error fetching stock quote:", error);
-    }
-  }
+
   const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) => {
     const totalValue = holdings.reduce((sum, holding) => sum + holding.marketValue, 0);
-    const totalGainLoss = holdings.reduce(
-      (sum, h) => sum + (h.marketValue - h.avgCost * h.quantity),
-      0
-    );
-    const gainLossPercentage = Number(
-      ((totalGainLoss / (totalValue - totalGainLoss)) * 100).toFixed(2)
-    );
+    const totalCost = holdings.reduce((sum, h) => sum + (h.avgCost * h.quantity), 0);
+    const totalGainLoss = totalValue - totalCost;
+    const gainLossPercentage = totalCost > 0 ? Number(((totalGainLoss / totalCost) * 100).toFixed(2)) : 0;
+
+    // Calculate today's change using previous close prices
+    let todaysChange = 0;
+    let todaysChangePercent = 0;
+    
+    holdings.forEach((holding) => {
+      const prevClose = previousClosePrices[holding.symbol];
+      if (prevClose && holding.currentPrice) {
+        const change = (holding.currentPrice - prevClose) * holding.quantity;
+        todaysChange += change;
+      }
+    });
+
+    const previousValue = totalValue - todaysChange;
+    todaysChangePercent = previousValue > 0 ? Number(((todaysChange / previousValue) * 100).toFixed(2)) : 0;
+
     const totalAssets = holdings.length;
 
     return {
@@ -204,8 +239,8 @@ const Dashboard: React.FC<Props> = ({ user }) => {
       },
       todaysChangeCard: {
         name: "Today's Change",
-        amount: totalGainLoss,
-        lastChange: gainLossPercentage,
+        amount: todaysChange,
+        lastChange: todaysChangePercent,
         logo: <PiPulseBold />,
       },
       totalAssetsCard: {
@@ -217,7 +252,6 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     };
   };
 
-  // 🟢 BUY FUNCTION (existing logic, just renamed)
   const handleBuy = async () => {
     if (!date) return;
     if (!user?.id) {
@@ -240,7 +274,6 @@ const Dashboard: React.FC<Props> = ({ user }) => {
       const { error } = await supabase.from("portfolio").insert([newHolding]);
       if (error) throw error;
       await fetchHoldings();
-
 
       resetForm();
     } catch (error) {
@@ -266,35 +299,33 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   };
 
   const handleSell = async () => {
-  if (!user?.id) return alert("User not logged in");
-  if (!search || !shares || !price || !date) return alert("All fields are required");
+    if (!user?.id) return alert("User not logged in");
+    if (!search || !shares || !price || !date) return alert("All fields are required");
 
-  // Extract symbol (e.g., "Apple (AAPL)" → "AAPL")
-  const symbolMatch = search.match(/\(([^)]+)\)/);
-  const symbol = symbolMatch ? symbolMatch[1] : search;
+    const symbolMatch = search.match(/\(([^)]+)\)/);
+    const symbol = symbolMatch ? symbolMatch[1] : search;
 
-  try {
-    const { data, error } = await supabase.rpc("sell_fifo", {
-      p_user_id: user.id,
-      p_symbol: symbol,
-      p_shares: parseFloat(shares),
-      p_price: parseFloat(price),
-      p_date: date.format("YYYY-MM-DD"),
-    });
+    try {
+      const { data, error } = await supabase.rpc("sell_fifo", {
+        p_user_id: user.id,
+        p_symbol: symbol,
+        p_shares: parseFloat(shares),
+        p_price: parseFloat(price),
+        p_date: date.format("YYYY-MM-DD"),
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    alert(data || "Sell completed!");
-    await fetchHoldings(); // refresh UI
-    resetForm();
-    setIsModalOpen(false);
-  } catch (err) {
-    console.error("Sell error:", err);
-    alert("Error processing sell. Please check console for details.");
-  }
-};
+      alert(data || "Sell completed!");
+      await fetchHoldings();
+      resetForm();
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error("Sell error:", err);
+      alert("Error processing sell. Please check console for details.");
+    }
+  };
 
-  // 🧹 Helper
   const resetForm = () => {
     setIsModalOpen(false);
     setSearch("");
@@ -310,80 +341,76 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     } else {
       await handleSell();
     }
-    await fetchTransactions(); // Refresh transactions after adding a new one
+    await fetchTransactions();
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
-// Dow Jones - Negative trend
-const dowJonesData = [
-  { value: 46600 },
-  { value: 46580 },
-  { value: 46550 },
-  { value: 46520 },
-  { value: 46500 },
-  { value: 46480 },
-  { value: 46450 },
-  { value: 46420 },
-  { value: 46400 },
-  { value: 46380 },
-  { value: 46360 },
-  { value: 46340 },
-  { value: 46358.42 }
-];
 
-// S&P 500 - Negative trend
-const sp500Data = [
-  { value: 6755 },
-  { value: 6752 },
-  { value: 6748 },
-  { value: 6745 },
-  { value: 6742 },
-  { value: 6740 },
-  { value: 6738 },
-  { value: 6736 },
-  { value: 6735 },
-  { value: 6735.11 }
-];
+  const dowJonesData = [
+    { value: 46600 },
+    { value: 46580 },
+    { value: 46550 },
+    { value: 46520 },
+    { value: 46500 },
+    { value: 46480 },
+    { value: 46450 },
+    { value: 46420 },
+    { value: 46400 },
+    { value: 46380 },
+    { value: 46360 },
+    { value: 46340 },
+    { value: 46358.42 }
+  ];
 
-// Nasdaq - Negative trend
-const nasdaqData = [
-  { value: 23045 },
-  { value: 23040 },
-  { value: 23035 },
-  { value: 23030 },
-  { value: 23028 },
-  { value: 23025 },
-  { value: 23024.62 }
-];
+  const sp500Data = [
+    { value: 6755 },
+    { value: 6752 },
+    { value: 6748 },
+    { value: 6745 },
+    { value: 6742 },
+    { value: 6740 },
+    { value: 6738 },
+    { value: 6736 },
+    { value: 6735 },
+    { value: 6735.11 }
+  ];
 
-// Russell - Negative trend
-const russellData = [
-  { value: 2485 },
-  { value: 2483 },
-  { value: 2480 },
-  { value: 2478 },
-  { value: 2476 },
-  { value: 2474 },
-  { value: 2472 },
-  { value: 2470 },
-  { value: 2468.85 }
-];
+  const nasdaqData = [
+    { value: 23045 },
+    { value: 23040 },
+    { value: 23035 },
+    { value: 23030 },
+    { value: 23028 },
+    { value: 23025 },
+    { value: 23024.62 }
+  ];
 
-// VIX - Positive trend
-const vixData = [
-  { value: 16.30 },
-  { value: 16.28 },
-  { value: 16.25 },
-  { value: 16.27 },
-  { value: 16.30 },
-  { value: 16.32 },
-  { value: 16.35 },
-  { value: 16.38 },
-  { value: 16.40 },
-  { value: 16.43 }
-];
+  const russellData = [
+    { value: 2485 },
+    { value: 2483 },
+    { value: 2480 },
+    { value: 2478 },
+    { value: 2476 },
+    { value: 2474 },
+    { value: 2472 },
+    { value: 2470 },
+    { value: 2468.85 }
+  ];
+
+  const vixData = [
+    { value: 16.30 },
+    { value: 16.28 },
+    { value: 16.25 },
+    { value: 16.27 },
+    { value: 16.30 },
+    { value: 16.32 },
+    { value: 16.35 },
+    { value: 16.38 },
+    { value: 16.40 },
+    { value: 16.43 }
+  ];
 
   return (
     <div
@@ -399,24 +426,6 @@ const vixData = [
         margin: "0 auto",
       }}
     >
-      {/* <Button
-        onClick={handleLogout}
-        sx={{
-          position: "absolute",
-          top: "20px",
-          right: "20px",
-          bgcolor: "transparent",
-          color: "var(--primary-text)",
-          fontWeight: "bold",
-          "&:hover": {
-            background: "var(--tri-background)",
-          },
-          borderRadius: "10px",
-        }}
-      >
-        Log Out
-      </Button> */}
-
       {/* Market Cards */}
       <div
         style={{
@@ -428,41 +437,40 @@ const vixData = [
         }}
       >
         <MarketCard
-        name="S&P 500"
-        value={2468.85}
-        changeAmount="(-15.14)"
-        changePercent="-0.61%"
-        chartData={sp500Data}
-      />
-      <MarketCard
-        name="Nasdaq"
-        value={2468.85}
-        changeAmount="(-15.14)"
-        changePercent="-0.61%"
-        chartData={nasdaqData}
-      />
-      <MarketCard
-        name="Dow Jones"
-        value={2468.85}
-        changeAmount="(-15.14)"
-        changePercent="-0.61%"
-        chartData={dowJonesData}
-      />
+          name="S&P 500"
+          value={2468.85}
+          changeAmount="(-15.14)"
+          changePercent="-0.61%"
+          chartData={sp500Data}
+        />
         <MarketCard
-        name="Russell"
-        value={2468.85}
-        changeAmount="(-15.14)"
-        changePercent="-0.61%"
-        chartData={russellData}
-      />
+          name="Nasdaq"
+          value={2468.85}
+          changeAmount="(-15.14)"
+          changePercent="-0.61%"
+          chartData={nasdaqData}
+        />
         <MarketCard
-        name="VIX"
-        value={16.43}
-        changeAmount="(-0.13)"
-        changePercent="+0.80%"
-        chartData={vixData}
-      />
-      
+          name="Dow Jones"
+          value={2468.85}
+          changeAmount="(-15.14)"
+          changePercent="-0.61%"
+          chartData={dowJonesData}
+        />
+        <MarketCard
+          name="Russell"
+          value={2468.85}
+          changeAmount="(-15.14)"
+          changePercent="-0.61%"
+          chartData={russellData}
+        />
+        <MarketCard
+          name="VIX"
+          value={16.43}
+          changeAmount="(-0.13)"
+          changePercent="+0.80%"
+          chartData={vixData}
+        />
       </div>
 
       {/* Add Transaction */}
