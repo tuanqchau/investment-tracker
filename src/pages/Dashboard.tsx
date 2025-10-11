@@ -59,13 +59,8 @@ const marketData = [
   },
 ];
 
-const stockList = [
-  "Apple (AAPL)",
-  "Amazon (AMZN)",
-  "Microsoft (MSFT)",
-  "Tesla (TSLA)",
-  "Nvidia (NVDA)",
-];
+// Import the stock list
+import stockList from "../data/stocks-autocomplete.json";
 
 interface Props {
   user: {
@@ -526,6 +521,13 @@ const Dashboard: React.FC<Props> = ({ user }) => {
             renderInput={(params) => (
               <TextField {...params} label="Search stock" margin="dense" fullWidth />
             )}
+            filterOptions={(options, { inputValue }) => {
+              // Limit results to 50 for better performance
+              const filtered = options.filter(option =>
+                option.toLowerCase().includes(inputValue.toLowerCase())
+              );
+              return filtered.slice(0, 50);
+            }}
             freeSolo
           />
 
@@ -555,7 +557,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
           />
         </DialogContent>
 
-        <DialogActions>
+        <DialogActions >
           <Button onClick={() => setIsModalOpen(false)} color="secondary">
             Cancel
           </Button>
