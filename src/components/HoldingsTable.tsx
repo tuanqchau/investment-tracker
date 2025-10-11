@@ -14,7 +14,7 @@ interface Holding {
   avgCost: number;
   currentPrice: number;
   marketValue: number;
-  gainLoss: number;
+  gainLoss: number; // in %
 }
 
 interface HoldingsTableProps {
@@ -24,6 +24,34 @@ interface HoldingsTableProps {
 export default function HoldingsTable({ holdings }: HoldingsTableProps) {
   const columnHelper = createColumnHelper<Holding>();
 
+  // ---- Compute Totals ----
+  const totals = useMemo(() => {
+    const totalQuantity = holdings.reduce((acc, h) => acc + h.quantity, 0);
+    const totalCost = holdings.reduce(
+      (acc, h) => acc + h.avgCost * h.quantity,
+      0
+    );
+    const totalMarketValue = holdings.reduce(
+      (acc, h) => acc + h.marketValue,
+      0
+    );
+    const totalGainLossDollar = holdings.reduce(
+      (acc, h) => acc + (h.currentPrice - h.avgCost) * h.quantity,
+      0
+    );
+
+    const totalGainLossPct =
+      totalCost > 0 ? ((totalMarketValue - totalCost) / totalCost) * 100 : 0;
+
+    return {
+      totalQuantity,
+      totalMarketValue,
+      totalGainLossDollar,
+      totalGainLossPct,
+    };
+  }, [holdings]);
+
+  // ---- Define Columns ----
   const columns = useMemo(
     () => [
       columnHelper.accessor("symbol", { header: "Symbol" }),
@@ -40,8 +68,25 @@ export default function HoldingsTable({ holdings }: HoldingsTableProps) {
         header: "Market Value",
         cell: (info) => `$${info.getValue().toFixed(2)}`,
       }),
+      // new Gain/Loss $ column
+      columnHelper.display({
+        id: "gainLossDollar",
+        header: "Gain/Loss ($)",
+        cell: (info) => {
+          const row = info.row.original;
+          const gainLossDollar =
+            (row.currentPrice - row.avgCost) * row.quantity;
+          const isPositive = gainLossDollar >= 0;
+          return (
+            <span className={isPositive ? "gain" : "loss"}>
+              {isPositive ? "+" : ""}
+              ${gainLossDollar.toFixed(2)}
+            </span>
+          );
+        },
+      }),
       columnHelper.accessor("gainLoss", {
-        header: "Gain/Loss",
+        header: "Gain/Loss (%)",
         cell: (info) => {
           const val = info.getValue();
           const isPositive = val >= 0;
@@ -61,6 +106,7 @@ export default function HoldingsTable({ holdings }: HoldingsTableProps) {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  // ---- Render ----
   return (
     <div className="holdings-table-container">
       <table className="holdings-table">
@@ -69,12 +115,16 @@ export default function HoldingsTable({ holdings }: HoldingsTableProps) {
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <th key={header.id}>
-                  {flexRender(header.column.columnDef.header, header.getContext())}
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
                 </th>
               ))}
             </tr>
           ))}
         </thead>
+
         <tbody>
           {table.getRowModel().rows.map((row) => (
             <tr key={row.id}>
@@ -85,6 +135,22 @@ export default function HoldingsTable({ holdings }: HoldingsTableProps) {
               ))}
             </tr>
           ))}
+
+          {/* Total Row */}
+          <tr className="total-row">
+            <td><strong>Total</strong></td>
+            <td>{totals.totalQuantity}</td>
+            <td>--</td>
+            <td>--</td>
+            <td>${totals.totalMarketValue.toFixed(2)}</td>
+            <td className={totals.totalGainLossDollar >= 0 ? "gain" : "loss"}>
+              {totals.totalGainLossDollar >= 0 ? "+" : ""}
+              ${totals.totalGainLossDollar.toFixed(2)}
+            </td>
+            <td className={totals.totalGainLossPct >= 0 ? "gain" : "loss"}>
+              {totals.totalGainLossPct.toFixed(2)}%
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
