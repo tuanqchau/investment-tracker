@@ -18,6 +18,9 @@
   --secondary-text: #A1A1AA;
   --secondary-background: #21242c;
   --tri-background: #3a3b42;
+
+  --neon-blue: #1fc0e0ff;
+  --neon-pink: #ff2d95ff;
 }
 
 a {
