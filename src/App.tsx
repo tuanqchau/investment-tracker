@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import Menu from './components/Menu';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Box } from '@mui/material';
@@ -14,7 +15,7 @@ interface AppUser {
 
 const App: React.FC = () => {
   const [user, setUser] = useState<AppUser | null>(null);
-  const [showLogin, setShowLogin] = useState(false); // 👈 toggle between login/signup
+  const [showLogin, setShowLogin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -53,7 +54,6 @@ const App: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-          
             p: 3,
           }}
         >
@@ -64,24 +64,29 @@ const App: React.FC = () => {
           )}
         </Box>
       ) : (
-
         <Box
           sx={{
-            height: '100vh', // ok to keep this
-            width: '100%',   // ✅ instead of 100vw
+            height: '100vh',
+            width: '100%',
             display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
+            flexDirection: 'column',
             p: 0,
             boxSizing: 'border-box',
-
           }}
         >
-          <Dashboard user={user} />
+          <Menu userEmail={user.email} />
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              overflow: 'auto',
+            }}
+          >
+            <Dashboard user={user} />
+          </Box>
         </Box>
-
-
-        
       )}
     </LocalizationProvider>
   );
