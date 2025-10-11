@@ -23,6 +23,8 @@ import {
 import AllocationPie from "../components/AllocationPie";
 import RecentTransactions from "../components/RecentTransactions";
 import MarketCard from "../components/MarketCard";
+import { fetchQuote, fetchCompanyProfile } from "../repositories/finnhub";
+import PortfolioRating from "../components/PortfolioRating";
 
 const marketData = [
   {
@@ -164,8 +166,18 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   useEffect(() => {
     fetchHoldings();
     fetchTransactions();
+    getStockQuote();
   }, [user.id]);
-
+  async function getStockQuote(){
+    try {
+        const quoteData = await fetchQuote("AAPL");
+        const profileData = await fetchCompanyProfile("AAPL");
+        console.log("Quote Data:", quoteData);
+        console.log("Profile Data:", profileData);
+    } catch (error) {
+      console.error("Error fetching stock quote:", error);
+    }
+  }
   const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) => {
     const totalValue = holdings.reduce((sum, holding) => sum + holding.marketValue, 0);
     const totalGainLoss = holdings.reduce(
@@ -564,6 +576,10 @@ const vixData = [
         <div style={{ flex: '1 1 360px', minWidth: 320, paddingTop: 30 }}>
           <RecentTransactions transactions={transactions} />
         </div>
+      </div>
+
+      <div>
+        <PortfolioRating holdings={portfolio} supabaseUrl={import.meta.env.VITE_SUPABASE_URL} supabaseAnonKey={import.meta.env.VITE_SUPABASE_ANON_KEY} />
       </div>
     </div>
   );
