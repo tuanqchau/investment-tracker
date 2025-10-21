@@ -81,7 +81,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   const [transactions, setTransactions] = useState<Transactions[]>([]);
   const [stockPrices, setStockPrices] = useState<Record<string, number>>({});
   const [previousClosePrices, setPreviousClosePrices] = useState<Record<string, number>>({});
-
+ 
   interface PortfolioHolding {
     id: number;
     symbol: string;
@@ -121,6 +121,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
     setStockPrices(prices);
     setPreviousClosePrices(prevPrices);
   };
+
 
   const processHoldingsData = (holdings: PortfolioHolding[]) => {
     const groupedHoldings = holdings.reduce((acc, holding) => {
@@ -194,6 +195,7 @@ const Dashboard: React.FC<Props> = ({ user }) => {
   useEffect(() => {
     fetchHoldings();
     fetchTransactions();
+ 
   }, [user.id]);
 
   const calculateCardValues = (holdings: ReturnType<typeof processHoldingsData>) => {
@@ -589,7 +591,12 @@ const Dashboard: React.FC<Props> = ({ user }) => {
       </div>
 
       <div>
-        <PortfolioRating holdings={portfolio} supabaseUrl={import.meta.env.VITE_SUPABASE_URL} supabaseAnonKey={import.meta.env.VITE_SUPABASE_ANON_KEY} />
+        <PortfolioRating 
+          holdings={portfolio} 
+          supabaseUrl={import.meta.env.VITE_SUPABASE_URL} 
+          supabaseAnonKey={import.meta.env.VITE_SUPABASE_ANON_KEY}
+          userId={user.id}
+        />
       </div>
     </div>
   );
